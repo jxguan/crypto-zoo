@@ -1,0 +1,196 @@
+{
+  "vertices": [
+    {
+      "id": "owf",
+      "name": "One-Way Function",
+      "abbreviation": "OWF",
+      "definition": "A function that is easy to compute on every input, but hard to invert given the image of a random input.",
+      "description": "One-way functions are fundamental building blocks in cryptography. They are functions that are computationally easy to evaluate but computationally difficult to invert. Formally, a function $f: \\{0,1\\}^* \\rightarrow \\{0,1\\}^*$ is one-way if it can be computed by a polynomial-time algorithm, but any polynomial-time randomized algorithm that attempts to invert $f$ on a random input succeeds with negligible probability.",
+      "category": "foundational",
+      "references": [
+        {
+          "title": "Foundations of Cryptography: Basic Tools",
+          "author": "Oded Goldreich",
+          "year": 2001,
+          "url": "https://www.wisdom.weizmann.ac.il/~oded/foc-vol1.html"
+        }
+      ],
+      "outgoingEdges": ["owf-to-prg", "owf-to-hash"],
+      "incomingEdges": []
+    },
+    {
+      "id": "prg",
+      "name": "Pseudorandom Generator",
+      "abbreviation": "PRG",
+      "definition": "A deterministic algorithm that takes a short random seed and expands it into a longer pseudorandom string.",
+      "description": "A pseudorandom generator is a deterministic algorithm that takes a short random seed and expands it into a longer pseudorandom string that is computationally indistinguishable from a truly random string of the same length. Formally, a PRG $G: \\{0,1\\}^n \\rightarrow \\{0,1\\}^{\\ell(n)}$ where $\\ell(n) > n$ is pseudorandom if for all PPT distinguishers $D$, $|\\Pr[D(G(U_n)) = 1] - \\Pr[D(U_{\\ell(n)}) = 1]| \\leq \\text{negl}(n)$. PRGs are essential for many cryptographic applications including stream ciphers and key generation.",
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "Theory of Cryptography",
+          "author": "Jonathan Katz and Yehuda Lindell",
+          "year": 2014,
+          "url": "https://www.cs.umd.edu/~jkatz/imc.html"
+        }
+      ],
+      "outgoingEdges": ["prg-to-prf"],
+      "incomingEdges": ["owf-to-prg"]
+    },
+    {
+      "id": "prf",
+      "name": "Pseudorandom Function",
+      "abbreviation": "PRF",
+      "definition": "A family of functions that are computationally indistinguishable from truly random functions.",
+      "description": "A pseudorandom function family is a collection of efficiently computable functions that are computationally indistinguishable from truly random functions. Formally, a PRF family $\\{F_k: \\{0,1\\}^n \\rightarrow \\{0,1\\}^m\\}_{k \\in \\{0,1\\}^\\lambda}$ is pseudorandom if for all PPT distinguishers $D$, $|\\Pr[D^{F_k(\\cdot)}(1^\\lambda) = 1] - \\Pr[D^{R(\\cdot)}(1^\\lambda) = 1]| \\leq \\text{negl}(\\lambda)$ where $R$ is a truly random function. PRFs are used in many cryptographic constructions including message authentication codes, key derivation functions, and more.",
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "How to Construct Random Functions",
+          "author": "Oded Goldreich, Shafi Goldwasser, and Silvio Micali",
+          "year": 1986,
+          "url": "https://doi.org/10.1145/12130.12134"
+        }
+      ],
+      "outgoingEdges": ["prf-to-mac"],
+      "incomingEdges": ["prg-to-prf"]
+    },
+    {
+      "id": "hash",
+      "name": "Cryptographic Hash Function",
+      "abbreviation": "Hash",
+      "definition": "A function that takes an input of arbitrary length and produces a fixed-size output, with properties like collision resistance and preimage resistance.",
+      "description": "A cryptographic hash function is a mathematical function that takes an input of arbitrary length and produces a fixed-size output. Formally, a hash function $H: \\{0,1\\}^* \\rightarrow \\{0,1\\}^n$ should satisfy properties like collision resistance (hard to find $x \\neq y$ such that $H(x) = H(y)$), preimage resistance (hard to find $x$ given $H(x)$), and second preimage resistance (hard to find $y \\neq x$ given $x$ such that $H(x) = H(y)$).",
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "Cryptographic Hash Functions",
+          "author": "Ivan Damgård",
+          "year": 1989,
+          "url": "https://doi.org/10.1007/0-387-34805-0_39"
+        }
+      ],
+      "outgoingEdges": ["hash-to-mac"],
+      "incomingEdges": ["owf-to-hash"]
+    },
+    {
+      "id": "mac",
+      "name": "Message Authentication Code",
+      "abbreviation": "MAC",
+      "definition": "A cryptographic primitive that provides authentication and integrity for messages using a shared secret key.",
+      "description": "A message authentication code is a cryptographic primitive that provides authentication and integrity for messages. Formally, a MAC consists of algorithms $(\\text{Gen}, \\text{Mac}, \\text{Vrfy})$ where $\\text{Mac}_k(m) = t$ produces a tag $t$ for message $m$ using key $k$, and $\\text{Vrfy}_k(m, t)$ outputs 1 if $t$ is a valid tag for $m$ under key $k$, and 0 otherwise.",
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "Message Authentication Codes",
+          "author": "Mihir Bellare, Ran Canetti, and Hugo Krawczyk",
+          "year": 1996,
+          "url": "https://doi.org/10.1007/3-540-68697-5_1"
+        }
+      ],
+      "outgoingEdges": [],
+      "incomingEdges": ["prf-to-mac", "hash-to-mac"]
+    }
+  ],
+  "edges": [
+    {
+      "id": "owf-to-prg",
+      "type": "construction",
+      "name": "OWF to PRG Construction",
+      "description": "A one-way function can be used to construct a pseudorandom generator using the Goldreich-Levin hardcore bit technique.",
+      "overview": "This construction shows that if one-way functions exist, then pseudorandom generators exist. The construction uses the Goldreich-Levin hardcore bit technique to extract pseudorandom bits from a one-way function. Given a one-way function $f$, we construct a PRG $G(x,r) = (f(x), \\langle x,r \\rangle)$ where $\\langle x,r \\rangle$ is the inner product modulo 2.",
+      "sourceVertices": ["owf"],
+      "targetVertices": ["prg"],
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "A Hard-Core Predicate for all One-Way Functions",
+          "author": "Oded Goldreich and Leonid A. Levin",
+          "year": 1989,
+          "url": "https://doi.org/10.1145/73007.73010"
+        }
+      ],
+      "complexity": "polynomial-time",
+      "security": "provably secure"
+    },
+    {
+      "id": "owf-to-hash",
+      "type": "construction",
+      "name": "OWF to Hash Construction",
+      "description": "One-way functions can be used to construct collision-resistant hash functions using the Merkle-Damgård construction.",
+      "overview": "This construction shows how to build collision-resistant hash functions from one-way functions using the Merkle-Damgård iterated construction. The construction compresses the input in stages using a compression function based on the one-way function.",
+      "sourceVertices": ["owf"],
+      "targetVertices": ["hash"],
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "A Design Principle for Hash Functions",
+          "author": "Ralph C. Merkle",
+          "year": 1989,
+          "url": "https://doi.org/10.1007/0-387-34805-0_39"
+        }
+      ],
+      "complexity": "polynomial-time",
+      "security": "provably secure"
+    },
+    {
+      "id": "prg-to-prf",
+      "type": "construction",
+      "name": "PRG to PRF Construction",
+      "description": "A pseudorandom generator can be used to construct a pseudorandom function using the GGM construction.",
+      "overview": "The Goldreich-Goldwasser-Micali (GGM) construction shows how to build a pseudorandom function from a pseudorandom generator. The construction uses the PRG to build a tree structure where each node represents a function evaluation. Given a PRG $G: \\{0,1\\}^n \\rightarrow \\{0,1\\}^{2n}$, we define $F_k(x) = G_{x_n}(G_{x_{n-1}}(\\cdots G_{x_1}(k) \\cdots))$ where $G_0$ and $G_1$ are the left and right halves of $G$'s output.",
+      "sourceVertices": ["prg"],
+      "targetVertices": ["prf"],
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "How to Construct Random Functions",
+          "author": "Oded Goldreich, Shafi Goldwasser, and Silvio Micali",
+          "year": 1986,
+          "url": "https://doi.org/10.1145/12130.12134"
+        }
+      ],
+      "complexity": "polynomial-time",
+      "security": "provably secure"
+    },
+    {
+      "id": "prf-to-mac",
+      "type": "construction",
+      "name": "PRF to MAC Construction",
+      "description": "A pseudorandom function can be used directly as a message authentication code.",
+      "overview": "This is a simple construction where a pseudorandom function is used directly as a message authentication code. The security of the MAC follows directly from the pseudorandomness of the PRF.",
+      "sourceVertices": ["prf"],
+      "targetVertices": ["mac"],
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "Message Authentication Codes",
+          "author": "Mihir Bellare, Ran Canetti, and Hugo Krawczyk",
+          "year": 1996,
+          "url": "https://doi.org/10.1007/3-540-68697-5_1"
+        }
+      ],
+      "complexity": "constant-time",
+      "security": "provably secure"
+    },
+    {
+      "id": "hash-to-mac",
+      "type": "construction",
+      "name": "Hash to MAC Construction",
+      "description": "A cryptographic hash function can be used to construct a message authentication code using HMAC.",
+      "overview": "The HMAC construction shows how to build a message authentication code from a cryptographic hash function. HMAC uses the hash function in a specific way to provide security even if the underlying hash function has weaknesses.",
+      "sourceVertices": ["hash"],
+      "targetVertices": ["mac"],
+      "category": "symmetric",
+      "references": [
+        {
+          "title": "HMAC: Keyed-Hashing for Message Authentication",
+          "author": "Mihir Bellare, Ran Canetti, and Hugo Krawczyk",
+          "year": 1996,
+          "url": "https://doi.org/10.17487/RFC2104"
+        }
+      ],
+      "complexity": "linear-time",
+      "security": "provably secure"
+    }
+  ]
+} 
