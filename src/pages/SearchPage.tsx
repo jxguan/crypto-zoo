@@ -13,43 +13,45 @@ export default function SearchPage({ query }: SearchPageProps) {
   const totalResults = vertexResults.length + edgeResults.length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Search Results</h1>
-        <p className="text-xl text-gray-600">
-          Found {totalResults} result{totalResults !== 1 ? 's' : ''} for "{query}"
-        </p>
+        <div className="bg-gradient-to-r from-primary-50 to-accent-50 rounded-3xl p-8 mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Search Results</h1>
+          <p className="text-xl text-gray-600">
+            Found {totalResults} result{totalResults !== 1 ? 's' : ''} for "{query}"
+          </p>
+        </div>
       </div>
 
       {/* Search Results */}
-      <div className="space-y-8">
+      <div className="space-y-12">
         {/* Primitives Results */}
         {vertexResults.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="animate-fade-in">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
               Primitives ({vertexResults.length})
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {vertexResults.map((vertex) => (
-                <div key={vertex.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{vertex.name}</h3>
-                      <p className="text-sm text-gray-500">{vertex.abbreviation}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {vertexResults.map((vertex, index) => (
+                <div key={vertex.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 group animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">{vertex.name}</h3>
+                      <p className="text-sm text-gray-500 font-mono mb-3">{vertex.abbreviation}</p>
+                      <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-200 text-primary-700 rounded-full capitalize">
+                        {vertex.category}
+                      </span>
                     </div>
-                    <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded-full capitalize">
-                      {vertex.category}
-                    </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  <div className="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
                     <LatexRenderer content={vertex.definition} />
-                  </p>
+                  </div>
                   <Link
                     to={`/vertex/${vertex.id}`}
-                    className="inline-flex items-center text-primary-600 hover:text-primary-700 transition-colors"
+                    className="inline-flex items-center text-primary-600 hover:text-primary-700 transition-colors font-semibold group-hover:underline"
                   >
-                    View details <ArrowRight className="w-4 h-4 ml-1" />
+                    View details <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               ))}
@@ -59,30 +61,30 @@ export default function SearchPage({ query }: SearchPageProps) {
 
         {/* Constructions Results */}
         {edgeResults.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="animate-fade-in">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
               Constructions ({edgeResults.length})
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {edgeResults.map((edge) => (
-                <div key={edge.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{edge.name}</h3>
-                      <p className="text-sm text-gray-500 capitalize">{edge.type}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {edgeResults.map((edge, index) => (
+                <div key={edge.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 group animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">{edge.name}</h3>
+                      <p className="text-sm text-gray-500 capitalize font-medium mb-3">{edge.type}</p>
+                      <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-accent-100 to-accent-200 text-accent-700 rounded-full capitalize">
+                        {edge.category}
+                      </span>
                     </div>
-                    <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded-full capitalize">
-                      {edge.category}
-                    </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  <div className="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
                     <LatexRenderer content={edge.description} />
-                  </p>
+                  </div>
                   <Link
                     to={`/edge/${edge.id}`}
-                    className="inline-flex items-center text-primary-600 hover:text-primary-700 transition-colors"
+                    className="inline-flex items-center text-accent-600 hover:text-accent-700 transition-colors font-semibold group-hover:underline"
                   >
-                    View details <ArrowRight className="w-4 h-4 ml-1" />
+                    View details <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               ))}
@@ -92,18 +94,20 @@ export default function SearchPage({ query }: SearchPageProps) {
 
         {/* No Results */}
         {totalResults === 0 && (
-          <div className="text-center py-12">
-            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">No results found</h2>
-            <p className="text-gray-600 mb-6">
-              Try searching for different terms or browse our collection of cryptographic primitives.
-            </p>
-            <Link
-              to="/"
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Browse All Primitives
-            </Link>
+          <div className="text-center py-16">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 max-w-2xl mx-auto">
+              <Search className="w-20 h-20 text-gray-400 mx-auto mb-6" />
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">No results found</h2>
+              <p className="text-gray-600 mb-8 text-lg">
+                Try searching for different terms or browse our collection of cryptographic primitives.
+              </p>
+              <Link
+                to="/"
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
+              >
+                Browse All Primitives
+              </Link>
+            </div>
           </div>
         )}
       </div>
