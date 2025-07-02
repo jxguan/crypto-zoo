@@ -1,4 +1,3 @@
-import React from 'react';
 import 'katex/dist/katex.min.css';
 // @ts-expect-error - react-katex types are not available
 import { InlineMath, BlockMath } from 'react-katex';
