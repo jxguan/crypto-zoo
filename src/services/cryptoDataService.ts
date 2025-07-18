@@ -28,11 +28,7 @@ class CryptoDataService {
     return this.data.edges.find(edge => edge.id === id);
   }
 
-  getVerticesByCategory(category: Vertex['category']): Vertex[] {
-    return this.data.vertices.filter(vertex => vertex.category === category);
-  }
-
-  getEdgesByType(type: Edge['type']): Edge[] {
+  getEdgesByType(type: string): Edge[] {
     return this.data.edges.filter(edge => edge.type === type);
   }
 

@@ -42,7 +42,7 @@ export default function EdgePage() {
           <p className="text-xl text-gray-600 capitalize">{edge.type}</p>
         </div>
         <span className="px-3 py-1 text-sm font-medium bg-primary-100 text-primary-800 rounded-full capitalize">
-          {edge.category}
+          {edge.model}
         </span>
       </div>
 
@@ -66,24 +66,7 @@ export default function EdgePage() {
             </p>
           </div>
 
-          {/* Properties */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Properties</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {edge.complexity && (
-                <div>
-                  <div className="font-medium text-gray-900">Complexity</div>
-                  <div className="text-gray-600">{edge.complexity}</div>
-                </div>
-              )}
-              {edge.security && (
-                <div>
-                  <div className="font-medium text-gray-900">Security</div>
-                  <div className="text-gray-600">{edge.security}</div>
-                </div>
-              )}
-            </div>
-          </div>
+
 
           {/* References */}
           <div className="bg-white rounded-lg shadow-md p-6">

@@ -76,7 +76,7 @@ export default function SearchPage({ query }: SearchPageProps) {
                       <h3 className="text-xl font-bold text-gray-900 mb-1">{edge.name}</h3>
                       <p className="text-sm text-gray-500 capitalize font-medium mb-3">{edge.type}</p>
                       <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-accent-100 to-accent-200 text-accent-700 rounded-full capitalize">
-                        {edge.category}
+                        {edge.model}
                       </span>
                     </div>
                   </div>
