@@ -118,7 +118,7 @@ export default function EdgePage() {
               {sourceVertices.map((vertex) => (
                 <Link
                   key={vertex.id}
-                  to={`/vertex/${vertex.id}`}
+                  to={`/v/${vertex.id}`}
                   className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -142,7 +142,7 @@ export default function EdgePage() {
               {targetVertices.map((vertex) => (
                 <Link
                   key={vertex.id}
-                  to={`/vertex/${vertex.id}`}
+                  to={`/v/${vertex.id}`}
                   className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">

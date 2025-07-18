@@ -6,6 +6,7 @@ import GraphView from './pages/GraphView';
 import VertexPage from './pages/VertexPage';
 import EdgePage from './pages/EdgePage';
 import SearchPage from './pages/SearchPage';
+import ToolPage from './pages/ToolPage';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,9 +19,10 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/graph" element={<GraphView />} />
-            <Route path="/vertex/:id" element={<VertexPage />} />
+            <Route path="/v/:id" element={<VertexPage />} />
             <Route path="/edge/:id" element={<EdgePage />} />
             <Route path="/search" element={<SearchPage query={searchQuery} />} />
+            <Route path="/tool" element={<ToolPage />} />
           </Routes>
         </main>
       </div>

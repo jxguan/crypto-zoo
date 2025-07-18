@@ -7,7 +7,6 @@ export default function VertexPage() {
   const { id } = useParams<{ id: string }>();
   const vertex = id ? cryptoDataService.getVertexById(id) : undefined;
   const { incoming, outgoing } = vertex && id ? cryptoDataService.getRelatedVertices(id) : { incoming: [], outgoing: [] };
-  const { incoming: incomingEdges, outgoing: outgoingEdges } = vertex && id ? cryptoDataService.getEdgesForVertex(id) : { incoming: [], outgoing: [] };
 
   if (!vertex) {
     return (
@@ -30,22 +29,23 @@ export default function VertexPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-primary-50 to-accent-50 rounded-3xl p-8">
         <div className="flex items-center space-x-6">
-          <Link
-            to="/"
-            className="inline-flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-xl transition-all duration-200 font-medium"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Link>
+          {/* Removed back button */}
           <div className="flex-1">
             <div className="flex items-center space-x-4 mb-2">
               <h1 className="text-4xl font-bold text-gray-900">{vertex.name}</h1>
               <span className="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-primary-100 to-primary-200 text-primary-700 rounded-full capitalize">
-                {vertex.category}
+                {vertex.type}
+              </span>
+              <span className="inline-block px-2 py-1 ml-2 text-xs font-medium bg-gray-100 text-gray-500 rounded capitalize">
+                {vertex.tags && vertex.tags.join(', ')}
               </span>
             </div>
             <p className="text-2xl text-gray-600 font-mono">{vertex.abbreviation}</p>
           </div>
+        </div>
+        {/* Description directly under header */}
+        <div className="mt-6 text-gray-700 leading-relaxed text-lg">
+          <LatexRenderer content={vertex.description} />
         </div>
       </div>
 
@@ -63,19 +63,6 @@ export default function VertexPage() {
             </div>
             <div className="text-gray-700 leading-relaxed text-lg">
               <LatexRenderer content={vertex.definition} />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-8">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl flex items-center justify-center">
-                <span className="text-accent-600 font-bold">i</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">Description</h2>
-            </div>
-            <div className="text-gray-700 leading-relaxed text-lg">
-              <LatexRenderer content={vertex.description} />
             </div>
           </div>
 
@@ -108,22 +95,15 @@ export default function VertexPage() {
 
         {/* Right Column - Relationships */}
         <div className="space-y-8">
-          {/* Incoming Relationships */}
+          {/* Can be built from (incoming) */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-8 h-8 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
-                <span className="text-green-600 font-bold text-sm">←</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">
-                Implied by ({incoming.length})
-              </h3>
-            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Can be built from ({incoming.length})</h3>
             {incoming.length > 0 ? (
               <div className="space-y-3">
                 {incoming.map((relatedVertex) => (
                   <Link
                     key={relatedVertex.id}
-                    to={`/vertex/${relatedVertex.id}`}
+                    to={`/v/${relatedVertex.id}`}
                     className="block p-4 border border-gray-200 rounded-xl hover:bg-primary-50 hover:border-primary-200 transition-all duration-200 group"
                   >
                     <div className="flex items-center justify-between">
@@ -141,27 +121,20 @@ export default function VertexPage() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-gray-400 text-4xl mb-2">🔗</div>
-                <p className="text-gray-500 font-medium">No incoming relationships</p>
+                <p className="text-gray-500 font-medium">No known constructions</p>
               </div>
             )}
           </div>
 
-          {/* Outgoing Relationships */}
+          {/* Can be used to build (outgoing) */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-sm">→</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">
-                Implies ({outgoing.length})
-              </h3>
-            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Can be used to build ({outgoing.length})</h3>
             {outgoing.length > 0 ? (
               <div className="space-y-3">
                 {outgoing.map((relatedVertex) => (
                   <Link
                     key={relatedVertex.id}
-                    to={`/vertex/${relatedVertex.id}`}
+                    to={`/v/${relatedVertex.id}`}
                     className="block p-4 border border-gray-200 rounded-xl hover:bg-primary-50 hover:border-primary-200 transition-all duration-200 group"
                   >
                     <div className="flex items-center justify-between">
@@ -179,40 +152,27 @@ export default function VertexPage() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-gray-400 text-4xl mb-2">🔗</div>
-                <p className="text-gray-500 font-medium">No outgoing relationships</p>
+                <p className="text-gray-500 font-medium">No known constructions</p>
               </div>
             )}
           </div>
 
-          {/* Related Constructions */}
+          {/* Implies (empty for now) */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
-                <span className="text-purple-600 font-bold text-sm">⚡</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">
-                Related Constructions ({incomingEdges.length + outgoingEdges.length})
-              </h3>
-            </div>
-            <div className="space-y-3">
-              {[...incomingEdges, ...outgoingEdges].map((edge) => (
-                <Link
-                  key={edge.id}
-                  to={`/edge/${edge.id}`}
-                  className="block p-4 border border-gray-200 rounded-xl hover:bg-accent-50 hover:border-accent-200 transition-all duration-200 group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-gray-900 group-hover:text-accent-600 transition-colors">
-                        {edge.name}
-                      </div>
-                      <div className="text-sm text-gray-500 capitalize font-medium">{edge.type}</div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-accent-500 transition-colors" />
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Implies</h3>
+            <div className="text-gray-400 text-center py-8">(Coming soon)</div>
+          </div>
+
+          {/* Equivalent (empty for now) */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Equivalent</h3>
+            <div className="text-gray-400 text-center py-8">(Coming soon)</div>
+          </div>
+
+          {/* Related notions (empty for now) */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Related notions</h3>
+            <div className="text-gray-400 text-center py-8">(Coming soon)</div>
           </div>
         </div>
       </div>

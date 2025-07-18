@@ -40,7 +40,10 @@ export default function SearchPage({ query }: SearchPageProps) {
                       <h3 className="text-xl font-bold text-gray-900 mb-1">{vertex.name}</h3>
                       <p className="text-sm text-gray-500 font-mono mb-3">{vertex.abbreviation}</p>
                       <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-200 text-primary-700 rounded-full capitalize">
-                        {vertex.category}
+                        {vertex.type}
+                      </span>
+                      <span className="inline-block px-2 py-1 ml-2 text-xs font-medium bg-gray-100 text-gray-500 rounded capitalize">
+                        {vertex.tags && vertex.tags.join(', ')}
                       </span>
                     </div>
                   </div>
@@ -48,7 +51,7 @@ export default function SearchPage({ query }: SearchPageProps) {
                     <LatexRenderer content={vertex.definition} />
                   </div>
                   <Link
-                    to={`/vertex/${vertex.id}`}
+                    to={`/v/${vertex.id}`}
                     className="inline-flex items-center text-primary-600 hover:text-primary-700 transition-colors font-semibold group-hover:underline"
                   >
                     View details <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

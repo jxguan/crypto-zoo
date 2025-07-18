@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Home, Network, BookOpen } from 'lucide-react';
+import { Search, BookOpen } from 'lucide-react';
 
 interface NavbarProps {
   searchQuery: string;
@@ -34,21 +34,10 @@ export default function Navbar({ searchQuery, setSearchQuery }: NavbarProps) {
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1">
-            <Link
-              to="/"
-              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200 font-medium"
-            >
-              <Home className="w-4 h-4" />
-              <span>Home</span>
-            </Link>
-            <Link
-              to="/graph"
-              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200 font-medium"
-            >
-              <Network className="w-4 h-4" />
-              <span>Graph View</span>
-            </Link>
+          <div className="flex items-center space-x-6">
+            <Link to="/graph" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Graph</Link>
+            <Link to="/search" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Search</Link>
+            <Link to="/tool" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Tools</Link>
           </div>
 
           {/* Search Bar */}

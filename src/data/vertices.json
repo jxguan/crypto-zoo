@@ -1,0 +1,138 @@
+{
+  "vertices": [
+    {
+      "id": "owf",
+      "name": "One-Way Function",
+      "abbreviation": "OWF",
+      "type": "primitive",
+      "tags": ["foundational"],
+      "description": "A function that is easy to compute on every input, but hard to invert given the image of a random input.",
+      "definition": "One-way functions are fundamental building blocks in cryptography. They are functions that are computationally easy to evaluate but computationally difficult to invert. Formally, a function $f: \\{0,1\\}^* \\rightarrow \\{0,1\\}^*$ is one-way if it can be computed by a polynomial-time algorithm, but any polynomial-time randomized algorithm that attempts to invert $f$ on a random input succeeds with negligible probability.",
+      "references": [
+        {
+          "title": "Foundations of Cryptography: Basic Tools",
+          "author": "Oded Goldreich",
+          "year": 2001,
+          "url": "https://www.wisdom.weizmann.ac.il/~oded/foc-vol1.html"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
+   },
+    {
+      "id": "prg",
+      "name": "Pseudorandom Generator",
+      "abbreviation": "PRG",
+      "type": "primitive",
+      "tags": ["symmetric"],
+      "description": "A deterministic algorithm that takes a short random seed and expands it into a longer pseudorandom string.",
+      "definition": "A pseudorandom generator is a deterministic algorithm that takes a short random seed and expands it into a longer pseudorandom string that is computationally indistinguishable from a truly random string of the same length. Formally, a PRG $G: \\{0,1\\}^n \\rightarrow \\{0,1\\}^{\\ell(n)}$ where $\\ell(n) > n$ is pseudorandom if for all PPT distinguishers $D$, $|\\Pr[D(G(U_n)) = 1] - \\Pr[D(U_{\\ell(n)}) = 1]| \\leq \\text{negl}(n)$. PRGs are essential for many cryptographic applications including stream ciphers and key generation.",
+      "references": [
+        {
+          "title": "Theory of Cryptography",
+          "author": "Jonathan Katz and Yehuda Lindell",
+          "year": 2014,
+          "url": "https://www.cs.umd.edu/~jkatz/imc.html"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
+    },
+    {
+      "id": "prf",
+      "name": "Pseudorandom Function",
+      "abbreviation": "PRF",
+      "type": "primitive",
+      "tags": ["symmetric"],
+      "description": "A family of functions that are computationally indistinguishable from truly random functions.",
+      "definition": "A pseudorandom function family is a collection of efficiently computable functions that are computationally indistinguishable from truly random functions. Formally, a PRF family $\\{F_k: \\{0,1\\}^n \\rightarrow \\{0,1\\}^m\\}_{k \\in \\{0,1\\}^\\lambda}$ is pseudorandom if for all PPT distinguishers $D$, $|\\Pr[D^{F_k(\\cdot)}(1^\\lambda) = 1] - \\Pr[D^{R(\\cdot)}(1^\\lambda) = 1]| \\leq \\text{negl}(\\lambda)$ where $R$ is a truly random function. PRFs are used in many cryptographic constructions including message authentication codes, key derivation functions, and more.",
+      "references": [
+        {
+          "title": "How to Construct Random Functions",
+          "author": "Oded Goldreich, Shafi Goldwasser, and Silvio Micali",
+          "year": 1986,
+          "url": "https://doi.org/10.1145/12130.12134"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
+    },
+    {
+      "id": "hash",
+      "name": "Cryptographic Hash Function",
+      "abbreviation": "Hash",
+      "type": "primitive",
+      "tags": ["symmetric"],
+      "description": "A function that takes an input of arbitrary length and produces a fixed-size output, with properties like collision resistance and preimage resistance.",
+      "definition": "A cryptographic hash function is a mathematical function that takes an input of arbitrary length and produces a fixed-size output. Formally, a hash function $H: \\{0,1\\}^* \\rightarrow \\{0,1\\}^n$ should satisfy properties like collision resistance (hard to find $x \\neq y$ such that $H(x) = H(y)$), preimage resistance (hard to find $x$ given $H(x)$), and second preimage resistance (hard to find $y \\neq x$ given $x$ such that $H(x) = H(y)$).",
+      "references": [
+        {
+          "title": "Cryptographic Hash Functions",
+          "author": "Ivan Damgård",
+          "year": 1989,
+          "url": "https://doi.org/10.1007/0-387-34805-0_39"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
+    },
+    {
+      "id": "mac",
+      "name": "Message Authentication Code",
+      "abbreviation": "MAC",
+      "type": "primitive",
+      "tags": ["symmetric"],
+      "description": "A cryptographic primitive that provides authentication and integrity for messages using a shared secret key.",
+      "definition": "A message authentication code is a cryptographic primitive that provides authentication and integrity for messages. Formally, a MAC consists of algorithms $(\\text{Gen}, \\text{Mac}, \\text{Vrfy})$ where $\\text{Mac}_k(m) = t$ produces a tag $t$ for message $m$ using key $k$, and $\\text{Vrfy}_k(m, t)$ outputs 1 if $t$ is a valid tag for $m$ under key $k$, and 0 otherwise.",
+      "references": [
+        {
+          "title": "Message Authentication Codes",
+          "author": "Mihir Bellare, Ran Canetti, and Hugo Krawczyk",
+          "year": 1996,
+          "url": "https://doi.org/10.1007/3-540-68697-5_1"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
+    },
+    {
+      "id": "ddh",
+      "name": "Decisional Diffie-Hellman Assumption",
+      "abbreviation": "DDH",
+      "type": "assumption",
+      "tags": ["hardness", "group theory", "foundational"],
+      "description": "An assumption about the hardness of distinguishing Diffie-Hellman tuples from random tuples.",
+      "definition": "The Decisional Diffie-Hellman (DDH) assumption states that, given a cyclic group $G$ of prime order $q$ and generator $g$, the distributions $(g^a, g^b, g^{ab})$ and $(g^a, g^b, g^c)$ (for random $a, b, c \\in \\mathbb{Z}_q$) are computationally indistinguishable.",
+      "references": [
+        {
+          "title": "A Decisional Problem Related to the Diffie-Hellman Problem",
+          "author": "Ueli Maurer and Stefan Wolf",
+          "year": 1998,
+          "url": "https://doi.org/10.1007/BFb0054138"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
+    },
+
+    {
+      "id": "aes",
+      "name": "Advanced Encryption Standard",
+      "abbreviation": "AES",
+      "type": "primitive",
+      "tags": ["block cipher", "standard", "symmetric"],
+      "description": "A widely used symmetric-key block cipher.",
+      "definition": "The Advanced Encryption Standard (AES) is a symmetric-key block cipher standardized by NIST. It operates on 128-bit blocks and supports key sizes of 128, 192, or 256 bits. AES is based on the Rijndael cipher and is widely used for secure data encryption.",
+      "references": [
+        {
+          "title": "Announcing the Advanced Encryption Standard (AES)",
+          "author": "National Institute of Standards and Technology (NIST)",
+          "year": 2001,
+          "url": "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
+    }
+  ]
+} 

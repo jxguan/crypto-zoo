@@ -1,11 +1,15 @@
-import cryptoData from '../data/crypto-primitives.json';
+import verticesData from '../data/vertices.json';
+import edgesData from '../data/edges.json';
 import type { CryptoDatabase, Vertex, Edge } from '../types/crypto';
 
 class CryptoDataService {
   private data: CryptoDatabase;
 
   constructor() {
-    this.data = cryptoData as CryptoDatabase;
+    this.data = {
+      vertices: (verticesData as { vertices: Vertex[] }).vertices,
+      edges: (edgesData as { edges: Edge[] }).edges
+    };
   }
 
   getAllVertices(): Vertex[] {
@@ -33,38 +37,31 @@ class CryptoDataService {
   }
 
   getRelatedVertices(vertexId: string): { incoming: Vertex[], outgoing: Vertex[] } {
-    const vertex = this.getVertexById(vertexId);
-    if (!vertex) return { incoming: [], outgoing: [] };
+    // Find incoming edges: edges where this vertex is in targetVertices
+    const incomingEdges = this.data.edges.filter(edge => edge.targetVertices.includes(vertexId));
+    // Find outgoing edges: edges where this vertex is in sourceVertices
+    const outgoingEdges = this.data.edges.filter(edge => edge.sourceVertices.includes(vertexId));
 
-    const incoming = vertex.incomingEdges
-      .map(edgeId => this.getEdgeById(edgeId))
-      .filter(edge => edge !== undefined)
-      .flatMap(edge => edge!.sourceVertices)
-      .map(vertexId => this.getVertexById(vertexId))
+    const incoming = incomingEdges
+      .flatMap(edge => edge.sourceVertices)
+      .filter(id => id !== vertexId)
+      .map(id => this.getVertexById(id))
       .filter(vertex => vertex !== undefined) as Vertex[];
 
-    const outgoing = vertex.outgoingEdges
-      .map(edgeId => this.getEdgeById(edgeId))
-      .filter(edge => edge !== undefined)
-      .flatMap(edge => edge!.targetVertices)
-      .map(vertexId => this.getVertexById(vertexId))
+    const outgoing = outgoingEdges
+      .flatMap(edge => edge.targetVertices)
+      .filter(id => id !== vertexId)
+      .map(id => this.getVertexById(id))
       .filter(vertex => vertex !== undefined) as Vertex[];
 
     return { incoming, outgoing };
   }
 
   getEdgesForVertex(vertexId: string): { incoming: Edge[], outgoing: Edge[] } {
-    const vertex = this.getVertexById(vertexId);
-    if (!vertex) return { incoming: [], outgoing: [] };
-
-    const incoming = vertex.incomingEdges
-      .map(edgeId => this.getEdgeById(edgeId))
-      .filter(edge => edge !== undefined) as Edge[];
-
-    const outgoing = vertex.outgoingEdges
-      .map(edgeId => this.getEdgeById(edgeId))
-      .filter(edge => edge !== undefined) as Edge[];
-
+    // Incoming: edges where this vertex is in targetVertices
+    const incoming = this.data.edges.filter(edge => edge.targetVertices.includes(vertexId));
+    // Outgoing: edges where this vertex is in sourceVertices
+    const outgoing = this.data.edges.filter(edge => edge.sourceVertices.includes(vertexId));
     return { incoming, outgoing };
   }
 

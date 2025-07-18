@@ -41,13 +41,23 @@ export default function GraphView() {
               {vertices.map((vertex) => (
                 <Link
                   key={vertex.id}
-                  to={`/vertex/${vertex.id}`}
+                  to={`/v/${vertex.id}`}
                   className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-gray-900">{vertex.name}</div>
                       <div className="text-sm text-gray-500">{vertex.abbreviation}</div>
+                      <span className="inline-block px-2 py-1 mt-1 text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-200 text-primary-700 rounded capitalize">
+                        {vertex.type}
+                      </span>
+                      {vertex.tags && vertex.tags.length > 0 && (
+                        <span className="ml-2 space-x-1">
+                          {vertex.tags.map((tag) => (
+                            <span key={tag} className="inline-block px-2 py-0.5 text-xs bg-gray-100 text-gray-500 rounded capitalize">{tag}</span>
+                          ))}
+                        </span>
+                      )}
                     </div>
                     <ArrowRight className="w-4 h-4 text-gray-400" />
                   </div>

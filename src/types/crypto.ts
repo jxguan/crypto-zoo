@@ -9,26 +9,27 @@ export interface Vertex {
   id: string;
   name: string;
   abbreviation: string;
-  definition: string;
+  type: string;
+  tags: string[];
   description: string;
-  category: 'foundational' | 'symmetric' | 'asymmetric' | 'quantum' | 'post-quantum';
+  definition: string;
   references: Reference[];
-  outgoingEdges: string[];
-  incomingEdges: string[];
+  relatedVertices: string[];
+  notes?: string;
 }
 
 export interface Edge {
   id: string;
-  type: 'construction' | 'impossibility' | 'reduction' | 'separation';
+  type: string;
   name: string;
   description: string;
   overview: string;
   sourceVertices: string[];
   targetVertices: string[];
-  category: 'symmetric' | 'asymmetric' | 'quantum' | 'post-quantum';
+  tags: string[];
+  model: string;
   references: Reference[];
-  complexity?: string;
-  security?: string;
+  notes?: string;
 }
 
 export interface CryptoDatabase {
