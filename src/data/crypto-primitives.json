@@ -89,6 +89,28 @@
       ],
       "outgoingEdges": [],
       "incomingEdges": ["prf-to-mac", "hash-to-mac"]
+    },
+    {
+      "id": "pke",
+      "name": "Public Key Encryption",
+      "abbreviation": "PKE",
+      "type": "primitive",
+      "tags": [
+        "public key",
+        "foundational"
+      ],
+      "description": "A public key encryption scheme (PKE) is a protocol where any party can encrypt messages, but only one party has the power to encrypt. In a PKE scheme, the receiver will generate a public key-secret key pair $(pk, sk)$. They will publish the public key $pk$, and keep the secret key $sk$ private. Any sender with access to the public key can then encrypt a message of their choice, producing a ciphertext. The receiver can then decrypt the ciphertext using the secret key, retrieving the message. However, any party (including other senders) who does not have access to the secret key gains no information on the encrypted plaintext.",
+      "definition": "A public-key encryption scheme is a tuple of probabilistic polynomial-time algorithms $(\\operatorname{Gen}, \\operatorname{Enc}, \\operatorname{Dec})$ with the following syntax:\n-$\\operatorname{Gen}(1^\\lambda)\\to (pk, sk)$: the key generation algorithm takes in a security parameter, and outputs a public key $pk$ and a secret key $sk$ \n-$\\operatorname{Enc}_{pk}(m) \\to c$: the encryption algorithm is a randomized procedure which takes in the public key $pk$ and a message $m$ and produces a ciphertext $c$.\n-$\\operatorname{Dec}_{sk}(c)\\to m$: the decryption algorithm takes in the secret key $sk$ and a ciphertext $c$, and outputs the decrypted message $m$.\nsatisfying the following requirements:\n-Correctness: For all messages $m$, $\\Pr[\\Dec_{sk}(\\Enc_{pk}(m))=m]\\geq 1-\\mathsf{negl}(\\lambda)$.\n-(IND-CPA) Security: For all probabilistic polynomial-time adversaries $\\mathcal{A}$, their success at winning the following game is $\\mathsf{negl}(\\lambda)$\n    -$\\operatorname{Gen}(1^\\lambda)\\to (pk,sk)$.\n    -$\\mathcal{A}(pk) \\to m_0,m_1$.\n    -A bit $b\\in \\{0,1\\}$ is chosen at random.\n    -$c_b \\gets \\operatorname{Enc}_{pk}(m_b)$.\n    -$c_b$ is sent to $\\mathcal{A}$.\n    -$\\mathcal{A} \\to b'$.\n    -$\\mathcal{A}$ wins the game if and only if $b=b'$.",
+      "references": [
+        {
+          "title": "Theory of Cryptography",
+          "author": "Jonathan Katz and Yehuda Lindell",
+          "year": 2014,
+          "url": "https://www.cs.umd.edu/~jkatz/imc.html"
+        }
+      ],
+      "relatedVertices": [],
+      "notes": ""
     }
   ],
   "edges": [
