@@ -99,6 +99,27 @@
           "url": "https://doi.org/10.17487/RFC2104"
         }
       ]
+    },
+    {
+      "id": "pke-to-ke",
+      "type": "construction",
+      "name": "PKE to KE Construction",
+      "description": "A public-key encryption scheme can be used to construct a key exchange protocol trivially. In particular, a PKE scheme is in essence a 2 message KE protocol.",
+      "overview": "The 2 message KE protocol given by any PKE scheme $(\\operatorname{Gen}, \\operatorname{Enc}, \\operatorname{Dec})$ acts as follows. The first party, Alice, will run $\\operatorname{Gen}\\to (pk, sk)$, and sends $pk$ to Bob. Bob picks a random message $m$, and sends $\\operatorname{Enc}_{pk}(m) \\to c$ to Alice. Alice then outputs $\\operatorname{Dec}_{sk}(c)$, and Bob outputs $m$ directly.\n\nCorrectness follows from the fact that $\\operatorname{Dec}_{sk}(c) = m$ by correctness of the PKE. Security follows from IND-CPA security of the PKE.",
+      "sourceVertices": [
+        "pke"
+      ],
+      "targetVertices": [
+        "ke"
+      ],
+      "tags": [
+        "public key",
+        "foundational",
+        "trivial"
+      ],
+      "model": "plain",
+      "references": [],
+      "notes": ""
     }
   ]
 } 
