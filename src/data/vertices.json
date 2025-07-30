@@ -114,7 +114,33 @@
           "url": "https://www.cs.umd.edu/~jkatz/imc.html"
         }
       ],
-      "relatedVertices": [],
+      "relatedVertices": [
+        "ke"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ke",
+      "name": "Key Exchange",
+      "abbreviation": "KE",
+      "type": "primitive",
+      "tags": [
+        "public key",
+        "foundational"
+      ],
+      "description": "A key exchange protocol is a protocol by which two parties communicating over a public channel can agree on a shared key. Any eavesdropper who can see all messages on the channel should receive no information about the agreed key.",
+      "definition": "A key exchange protocol is an interactive protocol between two parties $A$ and $B$. $A$ and $B$ will send messages over a series of rounds, and at the end will both output a bit $b_A,b_B$ respectively. A key exchange protocol must satisfy the following two properties:\n-Correctness: At the end of the protocol, $\\Pr[b_A=b_B]\\geq 1-\\mathsf{negl}(\\lambda)$. \n-Security: Let $\\tau$ be a random variable representing the transcript of messages sent between $A$ and $B$ when the protocol is run. Then, for all probabilistic polynomial-time adversaries $E$, $\\Pr[E(\\tau) = b_A] \\leq \\negl(\\lambda)$.",
+      "references": [
+        {
+          "title": "New directions in cryptography",
+          "author": "W. Diffie and M. Hellman",
+          "year": 1976,
+          "url": "https://ieeexplore.ieee.org/document/1055638"
+        }
+      ],
+      "relatedVertices": [
+        "pke"
+      ],
       "notes": ""
     },
     {
