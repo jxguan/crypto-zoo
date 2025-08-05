@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import type { Vertex, Edge, EditRequestForm } from '../types/crypto';
 
@@ -17,20 +17,12 @@ export const EditRequestFormComponent: React.FC<EditRequestFormProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [existingItem, setExistingItem] = useState<Vertex | Edge | null>(null);
   const [formData, setFormData] = useState<Partial<Vertex | Edge>>({});
   const [action, setAction] = useState<'create' | 'update' | 'delete'>('create');
-  const [notes, setNotes] = useState('');
+  const [comments, setComments] = useState('');
   const [email, setEmail] = useState('');
 
-  useEffect(() => {
-    if (targetId) {
-      loadExistingItem();
-      setAction('update');
-    }
-  }, [targetId]);
-
-  const loadExistingItem = async () => {
+  const loadExistingItem = useCallback(async () => {
     if (!targetId) return;
     
     try {
@@ -39,13 +31,19 @@ export const EditRequestFormComponent: React.FC<EditRequestFormProps> = ({
         : await supabaseService.getEdgeById(targetId);
       
       if (item) {
-        setExistingItem(item);
         setFormData(item);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load existing item');
     }
-  };
+  }, [targetId, type]);
+
+  useEffect(() => {
+    if (targetId) {
+      loadExistingItem();
+      setAction('update');
+    }
+  }, [targetId, loadExistingItem]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +56,7 @@ export const EditRequestFormComponent: React.FC<EditRequestFormProps> = ({
         target_id: targetId,
         data: formData,
         action,
-        notes: notes.trim() || undefined,
+        comments: comments.trim() || undefined,
         email: email.trim() || undefined
       };
 
@@ -71,172 +69,189 @@ export const EditRequestFormComponent: React.FC<EditRequestFormProps> = ({
     }
   };
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const renderVertexForm = () => (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Name</label>
-        <input
-          type="text"
-          value={formData.name || ''}
-          onChange={(e) => updateFormData('name', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+  const renderVertexForm = () => {
+    const vertexData = formData as Partial<Vertex>;
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Name</label>
+          <input
+            type="text"
+            value={vertexData.name || ''}
+            onChange={(e) => updateFormData('name', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Abbreviation</label>
-        <input
-          type="text"
-          value={formData.abbreviation || ''}
-          onChange={(e) => updateFormData('abbreviation', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Abbreviation</label>
+          <input
+            type="text"
+            value={vertexData.abbreviation || ''}
+            onChange={(e) => updateFormData('abbreviation', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Type</label>
-        <input
-          type="text"
-          value={formData.type || ''}
-          onChange={(e) => updateFormData('type', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Type</label>
+          <input
+            type="text"
+            value={vertexData.type || ''}
+            onChange={(e) => updateFormData('type', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
-        <input
-          type="text"
-          value={Array.isArray(formData.tags) ? formData.tags.join(', ') : ''}
-          onChange={(e) => updateFormData('tags', e.target.value.split(',').map(tag => tag.trim()))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+          <input
+            type="text"
+            value={Array.isArray(vertexData.tags) ? vertexData.tags.join(', ') : ''}
+            onChange={(e) => updateFormData('tags', e.target.value.split(',').map(tag => tag.trim()))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          value={formData.description || ''}
-          onChange={(e) => updateFormData('description', e.target.value)}
-          rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            value={vertexData.description || ''}
+            onChange={(e) => updateFormData('description', e.target.value)}
+            rows={3}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Definition</label>
-        <textarea
-          value={formData.definition || ''}
-          onChange={(e) => updateFormData('definition', e.target.value)}
-          rows={5}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Definition</label>
+          <textarea
+            value={vertexData.definition || ''}
+            onChange={(e) => updateFormData('definition', e.target.value)}
+            rows={5}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Notes (optional)</label>
-        <textarea
-          value={formData.notes || ''}
-          onChange={(e) => updateFormData('notes', e.target.value)}
-          rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Notes (optional)</label>
+          <textarea
+            value={vertexData.notes || ''}
+            onChange={(e) => updateFormData('notes', e.target.value)}
+            rows={3}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderEdgeForm = () => (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Name</label>
-        <input
-          type="text"
-          value={formData.name || ''}
-          onChange={(e) => updateFormData('name', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+  const renderEdgeForm = () => {
+    const edgeData = formData as Partial<Edge>;
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Name</label>
+          <input
+            type="text"
+            value={edgeData.name || ''}
+            onChange={(e) => updateFormData('name', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Type</label>
-        <select
-          value={formData.type || ''}
-          onChange={(e) => updateFormData('type', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        >
-          <option value="">Select type</option>
-          <option value="construction">Construction</option>
-          <option value="impossibility">Impossibility</option>
-          <option value="reduction">Reduction</option>
-          <option value="separation">Separation</option>
-        </select>
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Type</label>
+          <select
+            value={edgeData.type || ''}
+            onChange={(e) => updateFormData('type', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          >
+            <option value="">Select type</option>
+            <option value="construction">Construction</option>
+            <option value="impossibility">Impossibility</option>
+            <option value="reduction">Reduction</option>
+            <option value="separation">Separation</option>
+          </select>
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          value={formData.description || ''}
-          onChange={(e) => updateFormData('description', e.target.value)}
-          rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Overview</label>
+          <textarea
+            value={edgeData.overview || ''}
+            onChange={(e) => updateFormData('overview', e.target.value)}
+            rows={5}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Overview</label>
-        <textarea
-          value={formData.overview || ''}
-          onChange={(e) => updateFormData('overview', e.target.value)}
-          rows={5}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Theorem</label>
+          <textarea
+            value={edgeData.theorem || ''}
+            onChange={(e) => updateFormData('theorem', e.target.value)}
+            rows={3}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Model</label>
-        <input
-          type="text"
-          value={formData.model || ''}
-          onChange={(e) => updateFormData('model', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Proof Sketch</label>
+          <textarea
+            value={edgeData.proof_sketch || ''}
+            onChange={(e) => updateFormData('proof_sketch', e.target.value)}
+            rows={3}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
-        <input
-          type="text"
-          value={Array.isArray(formData.tags) ? formData.tags.join(', ') : ''}
-          onChange={(e) => updateFormData('tags', e.target.value.split(',').map(tag => tag.trim()))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Model</label>
+          <input
+            type="text"
+            value={edgeData.model || ''}
+            onChange={(e) => updateFormData('model', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Notes (optional)</label>
-        <textarea
-          value={formData.notes || ''}
-          onChange={(e) => updateFormData('notes', e.target.value)}
-          rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+          <input
+            type="text"
+            value={Array.isArray(edgeData.tags) ? edgeData.tags.join(', ') : ''}
+            onChange={(e) => updateFormData('tags', e.target.value.split(',').map(tag => tag.trim()))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Notes (optional)</label>
+          <textarea
+            value={edgeData.notes || ''}
+            onChange={(e) => updateFormData('notes', e.target.value)}
+            rows={3}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow">
@@ -295,8 +310,8 @@ export const EditRequestFormComponent: React.FC<EditRequestFormProps> = ({
             Notes for reviewers (optional)
           </label>
           <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
             rows={3}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             placeholder="Explain your changes or provide additional context..."
