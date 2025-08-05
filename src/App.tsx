@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import { Auth } from './components/Auth';
 import { supabaseService } from './services/supabaseService';
@@ -33,61 +33,76 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const currentUserRef = useRef<User | null>(null);
   useEffect(() => {
-    // Check for existing session
-    const checkAuth = async () => {
-      try {
-        const user = await supabaseService.getCurrentUser();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setCurrentUser(null);
-      } finally {     
-        setLoading(false);
-      }
-    };
+    let isInitialized = false;
 
-    checkAuth();
-    
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Handle auth state changes
-      if (event === 'SIGNED_IN' && session?.user) {
-        try {
-          const user = await supabaseService.getCurrentUser();
-          setCurrentUser(user);
-          setLoading(false);
-        } catch (error) {
-          console.error('Error handling auth state change:', error);
+      console.log('Auth state change:', event, session?.user?.id);
+      console.log(session);
+      console.log("currentUser", currentUserRef.current);
+      
+      if (event === 'INITIAL_SESSION') {
+        if (session?.user) {
+          try {
+            console.log("INITIAL_SESSION, getting user");
+            const user = await supabaseService.getCurrentUser(session);
+            setCurrentUser(user);
+            currentUserRef.current = user;
+            console.log("currentUser", currentUserRef.current);
+          } catch (error) {
+            console.error('Error handling initial session:', error);
+            setCurrentUser(null);
+            currentUserRef.current = null;
+          }
+        } else {
           setCurrentUser(null);
-          setLoading(false);
+          currentUserRef.current = null;
         }
+        
+        if (!isInitialized) {
+          setLoading(false);
+          isInitialized = true;
+        }
+      } else if (event === 'SIGNED_IN' && session?.user && isInitialized && currentUserRef.current === null) {
+        // Only handle SIGNED_IN if already initialized and no current user
+        console.log("SIGNED_IN branch entered - currentUser is null");
+        try {
+          console.log("SIGNED_IN, getting user");
+          const user = await supabaseService.getCurrentUser(session);
+          setCurrentUser(user);
+          currentUserRef.current = user;
+        } catch (error) {
+          console.error('Error handling sign in:', error);
+          setCurrentUser(null);
+          currentUserRef.current = null;
+        }
+      } else if (event === 'SIGNED_IN' && session?.user && isInitialized && currentUserRef.current !== null) {
+        // SIGNED_IN when already initialized and user exists - ignore
+        console.log("SIGNED_IN event ignored - currentUser already exists");
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
-        setLoading(false);
+        currentUserRef.current = null;
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         // Handle token refresh (important for page refreshes)
         try {
-          const user = await supabaseService.getCurrentUser();
+          console.log("TOKEN_REFRESHED, getting user");
+          const user = await supabaseService.getCurrentUser(session);
           setCurrentUser(user);
-          setLoading(false);
+          currentUserRef.current = user;
         } catch (error) {
           console.error('Error handling token refresh:', error);
           setCurrentUser(null);
-          setLoading(false);
+          currentUserRef.current = null;
         }
       }
     });
-    
-    // Make supabaseService available for testing in console
-    if (process.env.NODE_ENV === 'development') {
-      (window as { supabaseService?: typeof supabaseService; supabase?: typeof supabase }).supabaseService = supabaseService;
-      (window as { supabaseService?: typeof supabaseService; supabase?: typeof supabase }).supabase = supabase;
-    }
 
-    // Cleanup subscription
-    return () => subscription.unsubscribe();
+    // Cleanup function to unsubscribe when component unmounts
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleAuthSuccess = (user: User) => {

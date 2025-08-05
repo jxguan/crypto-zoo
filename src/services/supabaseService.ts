@@ -320,59 +320,122 @@ export class SupabaseService {
   }
 
   // User operations
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(session?: { user?: { id: string; email?: string; created_at?: string } }): Promise<User | null> {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('getCurrentUser: Starting...');
       
-      if (authError) {
-        console.error('getCurrentUser: Auth error:', authError);
-        return null;
-      }
+      /*
+             // Add timeout to prevent hanging
+       const timeoutPromise = new Promise<null>((resolve) => {
+         setTimeout(() => {
+           console.error('getCurrentUser: Timeout reached, returning null');
+           resolve(null);
+         }, 5000); // 3 second timeout
+       });*/
       
-      if (!user) {
-        return null;
-      }
-      
-      // Get user details from database
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.error('getCurrentUser: Error fetching user from database:', error);
-        return null;
-      }
-      
-      // If user is pending, upgrade them to regular user
-      if (data && data.role === 'pending') {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ role: 'user' })
-          .eq('id', user.id);
+            const getUserPromise = async () => {  
+        let user = null;
         
-        if (updateError) {
-          console.error('Failed to upgrade pending user:', updateError);
-          return data; // Return the user as-is if upgrade fails
+        if (session?.user) {
+          // Use user from session if provided
+          user = session.user;
+          console.log('getCurrentUser: Using user from session:', user.id);
+        } else {
+          // Fallback to auth.getUser() if no session provided
+          console.log('getCurrentUser: No session provided, calling auth.getUser()...');
+          const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+          
+          if (authError) {
+            console.error('getCurrentUser: Auth error:', authError);
+            return null;
+          }
+          
+          if (!authUser) {
+            console.log('getCurrentUser: No user found');
+            return null;
+          }
+          
+          user = authUser;
+          console.log('getCurrentUser: User found from auth:', user.id);
+        }
+        // Get user details from database with retry logic
+        console.log('getCurrentUser: About to query users table...');
+        let data = null;
+        let error = null;
+        
+        try {
+          console.log(`getCurrentUser: Database query attempt...`, user.id);
+          const result = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          data = result.data;
+          error = result.error;
+          
+        } catch (err) {
+          console.error('getCurrentUser: Exception during database query:', err);
+          error = err;
+          
         }
         
-        // Get the updated user record
-        const { data: updatedData, error: updatedError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        if (updatedError) {
-          console.error('Error fetching updated user:', updatedError);
-          return data; // Return the original user if fetch fails
+        if (error) {
+          console.error('getCurrentUser: Error fetching user from database after retries:', error);
+          // Fallback to basic user object if database query fails
+          console.log('getCurrentUser: Falling back to basic user object...');
+          const basicUser: User = {
+            id: user.id,
+            email: user.email || '',
+            first_name: '',
+            last_name: '',
+            role: 'user',
+            created_at: user.created_at || new Date().toISOString()
+          };
+          return basicUser;
         }
         
-        return updatedData;
-      }
+        console.log('getCurrentUser: User data fetched:', data?.id, data?.role);
+        
+        // If user is pending, upgrade them to regular user
+        if (data && data.role === 'pending') {
+          console.log('getCurrentUser: Upgrading pending user...');
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ role: 'user' })
+            .eq('id', user.id);
+          
+          if (updateError) {
+            console.error('Failed to upgrade pending user:', updateError);
+            return data; // Return the user as-is if upgrade fails
+          }
+          
+          // Get the updated user record
+          const { data: updatedData, error: updatedError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (updatedError) {
+            console.error('Error fetching updated user:', updatedError);
+            return data; // Return the original user if fetch fails
+          }
+          
+          console.log('getCurrentUser: User upgraded successfully:', updatedData?.id);
+          return updatedData;
+        }
+        
+        console.log('getCurrentUser: Returning user:', data?.id);
+        return data;
+        
+      };
       
-      return data;
+      // Race between the actual operation and the timeout
+      const result = await getUserPromise();
+      console.log('getCurrentUser: Result:', result);
+      return result;
+      
     } catch (error) {
       console.error('getCurrentUser: Unexpected error:', error);
       return null;
@@ -389,48 +452,50 @@ export class SupabaseService {
       return { user: null, error };
     }
     
-    if (data.user) {
-      // Get user details from database directly to avoid double calls
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (userError) {
-        console.error('Error fetching user from database:', userError);
-        return { user: null, error: userError };
-      }
-      
-      // If user is pending, upgrade them to regular user
-      if (userData && userData.role === 'pending') {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ role: 'user' })
-          .eq('id', data.user.id);
-        
-        if (updateError) {
-          console.error('Failed to upgrade pending user:', updateError);
-          return { user: null, error: updateError };
-        }
-        
-        // Get the updated user record
-        const { data: updatedUserData, error: updatedUserError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-        
-        if (updatedUserError) {
-          console.error('Error fetching updated user:', updatedUserError);
-          return { user: null, error: updatedUserError };
-        }
-        
-        return { user: updatedUserData, error: null };
-      }
-      
-      return { user: userData, error: null };
-    }
+         if (data.user) {
+       
+       // Get user details from database directly to avoid double calls
+       const { data: userData, error: userError } = await supabase
+         .from('users')
+         .select('*')
+         .eq('id', data.user.id)
+         .single();
+       
+       if (userError) {
+         console.error('Error fetching user from database:', userError);
+         return { user: null, error: userError };
+       }
+       
+       // If user is pending, upgrade them to regular user
+       if (userData && userData.role === 'pending') {
+         const { error: updateError } = await supabase
+           .from('users')
+           .update({ role: 'user' })
+           .eq('id', data.user.id);
+         
+         if (updateError) {
+           console.error('Failed to upgrade pending user:', updateError);
+           return { user: null, error: updateError };
+         }
+         
+         // Get the updated user record
+         const { data: updatedUserData, error: updatedUserError } = await supabase
+           .from('users')
+           .select('*')
+           .eq('id', data.user.id)
+           .single();
+         
+         if (updatedUserError) {
+           console.error('Error fetching updated user:', updatedUserError);
+           return { user: null, error: updatedUserError };
+         }
+         
+         return { user: updatedUserData, error: null };
+       }
+       
+       return { user: userData, error: null };
+       
+     }
 
     return { user: null, error: null };
   }
