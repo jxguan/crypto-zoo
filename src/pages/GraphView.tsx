@@ -1,10 +1,55 @@
 import { Link } from 'react-router-dom';
-import { cryptoDataService } from '../services/cryptoDataService';
+import { supabaseService } from '../services/supabaseService';
 import { ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import type { Vertex, Edge } from '../types/crypto';
 
 export default function GraphView() {
-  const vertices = cryptoDataService.getAllVertices();
-  const edges = cryptoDataService.getAllEdges();
+  const [vertices, setVertices] = useState<Vertex[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+            const [verticesData, edgesData] = await Promise.all([
+      supabaseService.getAllVertices(),
+      supabaseService.getAllEdges()
+    ]);
+        setVertices(verticesData);
+        setEdges(edgesData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+        setVertices([]);
+        setEdges([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">Error loading data</div>
+          <div className="text-gray-600">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -43,6 +88,7 @@ export default function GraphView() {
                   key={vertex.id}
                   to={`/v/${vertex.id}`}
                   className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -74,6 +120,7 @@ export default function GraphView() {
                   key={edge.id}
                   to={`/edge/${edge.id}`}
                   className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 >
                   <div className="flex items-center justify-between">
                     <div>

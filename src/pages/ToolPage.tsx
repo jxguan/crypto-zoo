@@ -15,8 +15,8 @@ interface VertexForm {
   tags: string[];
   description: string;
   definition: string;
-  references: Reference[];
-  relatedVertices: string[];
+  references_data: Reference[];
+  related_vertices: string[];
   notes: string;
 }
 
@@ -24,13 +24,15 @@ interface EdgeForm {
   id: string;
   type: string;
   name: string;
-  description: string;
   overview: string;
-  sourceVertices: string[];
-  targetVertices: string[];
+  theorem: string;
+  construction: string;
+  proof_sketch: string;
+  source_vertices: string[];
+  target_vertices: string[];
   tags: string[];
   model: string;
-  references: Reference[];
+  references_data: Reference[];
   notes: string;
 }
 
@@ -42,8 +44,8 @@ const vertexTemplate: VertexForm = {
   tags: [],
   description: '',
   definition: '',
-  references: [],
-  relatedVertices: [],
+  references_data: [],
+  related_vertices: [],
   notes: ''
 };
 
@@ -51,13 +53,15 @@ const edgeTemplate: EdgeForm = {
   id: '',
   type: '',
   name: '',
-  description: '',
   overview: '',
-  sourceVertices: [],
-  targetVertices: [],
+  theorem: '',
+  construction: '',
+  proof_sketch: '',
+  source_vertices: [],
+  target_vertices: [],
   tags: [],
   model: '',
-  references: [],
+  references_data: [],
   notes: ''
 };
 
@@ -81,12 +85,12 @@ export default function ToolPage() {
   // Sync local string state with array state when switching mode or resetting
   useEffect(() => {
     setVertexTagsInput(vertex.tags.join(', '));
-    setVertexRelatedInput(vertex.relatedVertices.join(', '));
+    setVertexRelatedInput(vertex.related_vertices.join(', '));
   }, [vertex]);
   useEffect(() => {
     setEdgeTagsInput(edge.tags.join(', '));
-    setEdgeSourceInput(edge.sourceVertices.join(', '));
-    setEdgeTargetInput(edge.targetVertices.join(', '));
+    setEdgeSourceInput(edge.source_vertices.join(', '));
+    setEdgeTargetInput(edge.target_vertices.join(', '));
   }, [edge]);
 
   // Handlers for updating array state from string input
@@ -94,16 +98,16 @@ export default function ToolPage() {
     setVertex(v => ({ ...v, tags: vertexTagsInput.split(',').map(s => s.trim()).filter(Boolean) }));
   };
   const handleVertexRelatedBlur = () => {
-    setVertex(v => ({ ...v, relatedVertices: vertexRelatedInput.split(',').map(s => s.trim()).filter(Boolean) }));
+    setVertex(v => ({ ...v, related_vertices: vertexRelatedInput.split(',').map(s => s.trim()).filter(Boolean) }));
   };
   const handleEdgeTagsBlur = () => {
     setEdge(e => ({ ...e, tags: edgeTagsInput.split(',').map(s => s.trim()).filter(Boolean) }));
   };
   const handleEdgeSourceBlur = () => {
-    setEdge(e => ({ ...e, sourceVertices: edgeSourceInput.split(',').map(s => s.trim()).filter(Boolean) }));
+    setEdge(e => ({ ...e, source_vertices: edgeSourceInput.split(',').map(s => s.trim()).filter(Boolean) }));
   };
   const handleEdgeTargetBlur = () => {
-    setEdge(e => ({ ...e, targetVertices: edgeTargetInput.split(',').map(s => s.trim()).filter(Boolean) }));
+    setEdge(e => ({ ...e, target_vertices: edgeTargetInput.split(',').map(s => s.trim()).filter(Boolean) }));
   };
 
   const handleVertexChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -134,27 +138,27 @@ export default function ToolPage() {
   const handleVertexReferenceChange = (idx: number, field: keyof Reference, value: string | number) => {
     setVertex(v => ({
       ...v,
-      references: v.references.map((ref, i) => i === idx ? { ...ref, [field]: value } : ref)
+      references_data: v.references_data.map((ref, i) => i === idx ? { ...ref, [field]: value } : ref)
     }));
   };
   const addVertexReference = () => {
-    setVertex(v => ({ ...v, references: [...v.references, { title: '', author: '', year: new Date().getFullYear(), url: '' }] }));
+    setVertex(v => ({ ...v, references_data: [...v.references_data, { title: '', author: '', year: new Date().getFullYear(), url: '' }] }));
   };
   const removeVertexReference = (idx: number) => {
-    setVertex(v => ({ ...v, references: v.references.filter((_, i) => i !== idx) }));
+    setVertex(v => ({ ...v, references_data: v.references_data.filter((_, i) => i !== idx) }));
   };
 
   const handleEdgeReferenceChange = (idx: number, field: keyof Reference, value: string | number) => {
     setEdge(e => ({
       ...e,
-      references: e.references.map((ref, i) => i === idx ? { ...ref, [field]: value } : ref)
+      references_data: e.references_data.map((ref, i) => i === idx ? { ...ref, [field]: value } : ref)
     }));
   };
   const addEdgeReference = () => {
-    setEdge(e => ({ ...e, references: [...e.references, { title: '', author: '', year: new Date().getFullYear(), url: '' }] }));
+    setEdge(e => ({ ...e, references_data: [...e.references_data, { title: '', author: '', year: new Date().getFullYear(), url: '' }] }));
   };
   const removeEdgeReference = (idx: number) => {
-    setEdge(e => ({ ...e, references: e.references.filter((_, i) => i !== idx) }));
+    setEdge(e => ({ ...e, references_data: e.references_data.filter((_, i) => i !== idx) }));
   };
 
   return (
@@ -219,7 +223,7 @@ export default function ToolPage() {
               <span className="font-semibold">References</span>
               <button type="button" className="px-2 py-1 bg-primary-100 text-primary-700 rounded text-xs font-medium" onClick={addVertexReference}>+ Add Reference</button>
             </div>
-            {vertex.references.map((ref, idx) => (
+            {vertex.references_data.map((ref, idx) => (
               <div key={idx} className="flex flex-wrap gap-2 items-center border border-gray-200 rounded p-2 mb-1">
                 <input className="input flex-1" placeholder="title" value={ref.title} onChange={e => handleVertexReferenceChange(idx, 'title', e.target.value)} />
                 <input className="input flex-1" placeholder="author" value={ref.author} onChange={e => handleVertexReferenceChange(idx, 'author', e.target.value)} />
@@ -276,12 +280,20 @@ export default function ToolPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description <span className="text-gray-400">(short, one line)</span></label>
-            <textarea className="input w-full" name="description" placeholder="A one-way function can be used to construct a pseudorandom generator..." value={edge.description} onChange={handleEdgeChange} />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Overview <span className="text-gray-400">(formal, can use LaTeX)</span></label>
             <textarea className="input w-full" name="overview" placeholder="Formal overview, e.g. The Goldreich-Levin construction..." value={edge.overview} onChange={handleEdgeChange} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Theorem <span className="text-gray-400">(formal statement)</span></label>
+            <textarea className="input w-full" name="theorem" placeholder="Formal theorem statement..." value={edge.theorem} onChange={handleEdgeChange} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Construction <span className="text-gray-400">(for construction type edges)</span></label>
+            <textarea className="input w-full" name="construction" placeholder="Construction details..." value={edge.construction} onChange={handleEdgeChange} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Proof Sketch <span className="text-gray-400">(proof outline)</span></label>
+            <textarea className="input w-full" name="proof_sketch" placeholder="Proof sketch or outline..." value={edge.proof_sketch} onChange={handleEdgeChange} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Notes <span className="text-gray-400">(optional)</span></label>
@@ -293,7 +305,7 @@ export default function ToolPage() {
               <span className="font-semibold">References</span>
               <button type="button" className="px-2 py-1 bg-primary-100 text-primary-700 rounded text-xs font-medium" onClick={addEdgeReference}>+ Add Reference</button>
             </div>
-            {edge.references.map((ref, idx) => (
+            {edge.references_data.map((ref, idx) => (
               <div key={idx} className="flex flex-wrap gap-2 items-center border border-gray-200 rounded p-2 mb-1">
                 <input className="input flex-1" placeholder="title" value={ref.title} onChange={e => handleEdgeReferenceChange(idx, 'title', e.target.value)} />
                 <input className="input flex-1" placeholder="author" value={ref.author} onChange={e => handleEdgeReferenceChange(idx, 'author', e.target.value)} />

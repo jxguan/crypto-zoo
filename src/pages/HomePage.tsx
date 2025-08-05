@@ -1,17 +1,62 @@
 import { Link } from 'react-router-dom';
 import { Network, Search, ArrowRight } from 'lucide-react';
-import { cryptoDataService } from '../services/cryptoDataService';
+import { supabaseService } from '../services/supabaseService';
 import LatexRenderer from '../components/LatexRenderer';
+import { useState, useEffect } from 'react';
+import type { Vertex, Edge } from '../types/crypto';
 
 export default function HomePage() {
-  const vertices = cryptoDataService.getAllVertices();
-  const edges = cryptoDataService.getAllEdges();
+  const [vertices, setVertices] = useState<Vertex[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [verticesData, edgesData] = await Promise.all([
+          supabaseService.getAllVertices(),
+          supabaseService.getAllEdges()
+        ]);
+        setVertices(verticesData);
+        setEdges(edgesData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+        setVertices([]);
+        setEdges([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Group by type instead of category
   const types = Array.from(new Set(vertices.map(v => v.type)));
   const groupedByType = Object.fromEntries(
     types.map(type => [type, vertices.filter(v => v.type === type)])
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">Error loading data</div>
+          <div className="text-gray-600">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-16">

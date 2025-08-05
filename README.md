@@ -8,20 +8,25 @@ A comprehensive visualization and exploration tool for cryptographic primitives 
 
 ## ✨ Features
 
+- **🔐 User Authentication**: Secure sign-up and sign-in with email/password (optional for browsing)
+- **📝 Edit Request System**: Anonymous users can submit suggestions for new primitives or updates to existing ones
+- **👨‍💼 Admin Dashboard**: Review and approve/reject user-submitted edit requests
 - **🔍 Advanced Search**: Find cryptographic primitives and constructions quickly with intelligent search
-- **📊 Interactive Graph View**: Explore relationships between cryptographic primitives (coming soon)
+- **📊 Interactive Graph View**: Explore relationships between cryptographic primitives
 - **📚 Detailed Information**: Comprehensive details about each primitive including definitions, references, and relationships
 - **🧮 Mathematical Notation**: Beautiful LaTeX rendering for mathematical expressions and formulas
 - **📱 Responsive Design**: Optimized for desktop, tablet, and mobile devices
 - **🎨 Modern UI**: Clean, intuitive interface with smooth animations and transitions
 - **🔗 Relationship Mapping**: Visualize how cryptographic primitives build upon each other
+- **🔄 Real-time Updates**: Dynamic content updates when edit requests are approved
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 19 with TypeScript
+- **Backend**: Supabase (PostgreSQL + Auth + Real-time)
 - **Build Tool**: Vite 6
 - **Styling**: Tailwind CSS with custom design system
-- **Visualization**: D3.js (planned)
+- **Visualization**: D3.js
 - **Mathematical Rendering**: KaTeX
 - **Routing**: React Router DOM
 - **Icons**: Lucide React
@@ -33,6 +38,7 @@ A comprehensive visualization and exploration tool for cryptographic primitives 
 
 - Node.js 18+
 - npm or yarn
+- Supabase account
 
 ### Installation
 
@@ -43,6 +49,13 @@ cd crypto-zoo
 
 # Install dependencies
 npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your Supabase credentials
+
+# Set up database schema
+# Run the SQL in supabase-schema.sql in your Supabase dashboard
 
 # Start development server
 npm run dev
@@ -74,6 +87,9 @@ npm run deploy
 ```
 src/
 ├── components/          # Reusable React components
+│   ├── Auth.tsx        # Authentication component
+│   ├── AdminDashboard.tsx # Admin interface
+│   ├── EditRequestForm.tsx # Edit request submission
 │   ├── LatexRenderer.tsx
 │   └── Navbar.tsx
 ├── pages/              # Page components
@@ -82,13 +98,13 @@ src/
 │   ├── SearchPage.tsx
 │   ├── VertexPage.tsx
 │   ├── EdgePage.tsx
-│   └── ToolPage.tsx
-├── data/               # JSON data files
-│   ├── crypto-primitives.json
-│   ├── vertices.json
-│   └── edges.json
+│   ├── ToolPage.tsx
+│   ├── AdminPage.tsx   # Admin dashboard page
+│   └── SubmitEditPage.tsx # Edit request page
 ├── services/           # Data services and utilities
-│   └── cryptoDataService.ts
+│   └── supabaseService.ts   # Supabase service layer
+├── lib/                # Library configurations
+│   └── supabase.ts     # Supabase client configuration
 ├── types/              # TypeScript type definitions
 │   └── crypto.ts
 └── assets/             # Static assets
@@ -100,9 +116,28 @@ src/
 - **SearchPage**: Advanced search functionality for primitives and constructions
 - **VertexPage**: Detailed view of individual cryptographic primitives
 - **EdgePage**: Information about cryptographic constructions and relationships
-- **GraphView**: Interactive graph visualization (planned)
-- **Navbar**: Navigation and search bar component
+- **GraphView**: Interactive graph visualization
+- **AdminPage**: Admin dashboard for managing edit requests
+- **SubmitEditPage**: User interface for submitting edit requests
+- **Auth**: Authentication component for sign-up/sign-in
+- **Navbar**: Navigation and search bar component with user menu
 - **LatexRenderer**: Component for rendering mathematical notation
+
+## 🔐 Authentication & User Management
+
+### User Roles
+
+- **Anonymous Users**: Can browse, search, and submit edit requests without registration
+- **Regular Users**: Can browse, search, and submit edit requests (with account)
+- **Admin Users**: Can review and approve/reject edit requests, plus all regular user features
+
+### Edit Request System
+
+1. **Submit**: **Anonymous users can suggest new primitives or updates to existing ones** without needing to register or log in
+2. **Optional Email**: Users can optionally provide their email address to receive updates about their request status
+3. **Review**: Admins review submitted requests in the admin dashboard
+4. **Approve/Reject**: Admins can approve or reject requests with notes
+5. **Auto-Apply**: Approved requests are automatically applied to the database
 
 ## 🌐 Deployment
 
@@ -111,6 +146,17 @@ The project is automatically deployed to GitHub Pages via GitHub Actions:
 - **Live Site**: [www.crypto-zoo.net](https://www.crypto-zoo.net)
 - **Repository**: [github.com/jxguan/crypto-zoo](https://github.com/jxguan/crypto-zoo)
 - **Deployment**: Automatic deployment on push to master branch
+
+### Environment Variables
+
+For deployment, you'll need to set these environment variables:
+
+- `VITE_SUPABASE_URL`: Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+## 📋 Setup Guide
+
+For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 ## 🤝 Contributing
 
@@ -127,6 +173,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 🙏 Acknowledgments
 
 - Built with React and TypeScript
+- Backend powered by Supabase
 - Styled with Tailwind CSS
 - Mathematical rendering powered by KaTeX
 - Icons from Lucide React

@@ -1,16 +1,69 @@
 import { Link } from 'react-router-dom';
 import { Search, ArrowRight } from 'lucide-react';
-import { cryptoDataService } from '../services/cryptoDataService';
+import { supabaseService } from '../services/supabaseService';
 import LatexRenderer from '../components/LatexRenderer';
+import { useState, useEffect } from 'react';
+import type { Vertex, Edge } from '../types/crypto';
 
 interface SearchPageProps {
   query: string;
 }
 
 export default function SearchPage({ query }: SearchPageProps) {
-  const vertexResults = cryptoDataService.searchVertices(query);
-  const edgeResults = cryptoDataService.searchEdges(query);
+  const [vertexResults, setVertexResults] = useState<Vertex[]>([]);
+  const [edgeResults, setEdgeResults] = useState<Edge[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadSearchResults = async () => {
+      if (!query.trim()) {
+        setVertexResults([]);
+        setEdgeResults([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const [verticesData, edgesData] = await Promise.all([
+          supabaseService.searchVertices(query),
+          supabaseService.searchEdges(query)
+        ]);
+        setVertexResults(verticesData);
+        setEdgeResults(edgesData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to search');
+        setVertexResults([]);
+        setEdgeResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSearchResults();
+  }, [query]);
+
   const totalResults = vertexResults.length + edgeResults.length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Searching...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">Error searching</div>
+          <div className="text-gray-600">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-12">
@@ -81,7 +134,7 @@ export default function SearchPage({ query }: SearchPageProps) {
                     </div>
                   </div>
                   <div className="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
-                    <LatexRenderer content={edge.description} />
+                    <LatexRenderer content={edge.overview} />
                   </div>
                   <Link
                     to={`/edge/${edge.id}`}

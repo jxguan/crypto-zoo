@@ -1,12 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, BookOpen } from 'lucide-react';
+import { Search, BookOpen, User, LogOut, Settings, Plus } from 'lucide-react';
+import type { User as UserType } from '../types/crypto';
 
 interface NavbarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  currentUser: UserType | null;
+  onSignOut: () => Promise<void>;
 }
 
-export default function Navbar({ searchQuery, setSearchQuery }: NavbarProps) {
+export default function Navbar({ searchQuery, setSearchQuery, currentUser, onSignOut }: NavbarProps) {
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -14,6 +17,11 @@ export default function Navbar({ searchQuery, setSearchQuery }: NavbarProps) {
     if (searchQuery.trim()) {
       navigate('/search');
     }
+  };
+
+  const handleSignOut = async () => {
+    await onSignOut();
+    navigate('/');
   };
 
   return (
@@ -38,6 +46,10 @@ export default function Navbar({ searchQuery, setSearchQuery }: NavbarProps) {
             <Link to="/graph" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Graph</Link>
             <Link to="/search" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Search</Link>
             <Link to="/tool" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Tools</Link>
+            <Link to="/submit-edit" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors">
+              <Plus className="w-4 h-4" />
+              <span>Submit Edit</span>
+            </Link>
           </div>
 
           {/* Search Bar */}
@@ -53,6 +65,51 @@ export default function Navbar({ searchQuery, setSearchQuery }: NavbarProps) {
               <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-primary-500 transition-colors duration-200" />
             </div>
           </form>
+
+          {/* User Menu */}
+          {currentUser ? (
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <User className="w-4 h-4" />
+                <span>{currentUser.email}</span>
+                {currentUser.role === 'admin' && (
+                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full font-medium">
+                    Admin
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {currentUser.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Admin</span>
+                  </Link>
+                )}
+                
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-red-600 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/auth"
+                className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span>Sign In</span>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </nav>
