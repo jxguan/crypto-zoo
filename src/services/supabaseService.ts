@@ -353,7 +353,7 @@ export class SupabaseService {
     return { user: null, error: null };
   }
 
-  async signUp(email: string, password: string): Promise<{ user: User | null; error: AuthError | null }> {
+  async signUp(email: string, password: string, firstName?: string, lastName?: string): Promise<{ user: User | null; error: AuthError | null }> {
     const { data, error } = await supabase.auth.signUp({
       email,
       password
@@ -368,6 +368,8 @@ export class SupabaseService {
         .insert({
           id: data.user.id,
           email: data.user.email!,
+          first_name: firstName,
+          last_name: lastName,
           role: 'user'
         });
 

@@ -24,6 +24,18 @@ export default function Navbar({ searchQuery, setSearchQuery, currentUser, onSig
     navigate('/');
   };
 
+  const getDisplayName = (user: UserType) => {
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    } else if (user.first_name) {
+      return user.first_name;
+    } else if (user.last_name) {
+      return user.last_name;
+    } else {
+      return user.email;
+    }
+  };
+
   return (
     <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50">
       <div className="container mx-auto px-6">
@@ -71,7 +83,7 @@ export default function Navbar({ searchQuery, setSearchQuery, currentUser, onSig
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <User className="w-4 h-4" />
-                <span>{currentUser.email}</span>
+                <span>{getDisplayName(currentUser)}</span>
                 {currentUser.role === 'admin' && (
                   <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full font-medium">
                     Admin
