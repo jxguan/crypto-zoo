@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import type { EditRequest, User, Vertex, Edge } from '../types/crypto';
 import { ChangeDisplay } from './ChangeDisplay';
@@ -8,16 +8,6 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) => {
-  if (!currentUser) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <h3 className="text-red-800 font-medium">Authentication Required</h3>
-          <p className="text-red-700">You need to be logged in to access the admin dashboard.</p>
-        </div>
-      </div>
-    );
-  }
   const [editRequests, setEditRequests] = useState<EditRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,11 +17,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
   const [originalData, setOriginalData] = useState<Vertex | Edge | null>(null);
   const [loadingOriginalData, setLoadingOriginalData] = useState(false);
 
-  useEffect(() => {
-    loadEditRequests();
-  }, [statusFilter]);
-
-  const loadEditRequests = async () => {
+  const loadEditRequests = useCallback(async () => {
     try {
       setLoading(true);
       const requests = statusFilter === 'all' 
@@ -43,7 +29,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
+
+  useEffect(() => {
+    if (currentUser?.role === 'admin') {
+      loadEditRequests();
+    }
+  }, [loadEditRequests, currentUser]);
 
   const handleReview = async (requestId: string, status: 'approved' | 'rejected') => {
     try {
@@ -110,6 +102,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
     }
   };
 
+  if (!currentUser) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <h3 className="text-red-800 font-medium">Authentication Required</h3>
+          <p className="text-red-700">You need to be logged in to access the admin dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (currentUser.role !== 'admin') {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -139,7 +142,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
           <label className="text-sm font-medium text-gray-700">Filter by status:</label>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as 'pending' | 'approved' | 'rejected' | 'all')}
             className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="pending">Pending</option>
@@ -181,9 +184,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                         {request.action === 'create' ? 'Create new' : 'Update'} {request.type}
                         {request.target_id && ` (ID: ${request.target_id})`}
                       </h3>
-                      {request.notes && (
+                      {request.comments && (
                         <p className="mt-1 text-sm text-gray-600">
-                          <strong>Notes:</strong> {request.notes}
+                          <strong>Notes:</strong> {request.comments}
                         </p>
                       )}
                       <p className="mt-1 text-sm text-gray-500">
@@ -245,8 +248,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                       {selectedRequest.target_id && (
                         <p><strong>Target ID:</strong> {selectedRequest.target_id}</p>
                       )}
-                      {selectedRequest.notes && (
-                        <p><strong>Submitter Notes:</strong> {selectedRequest.notes}</p>
+                      {selectedRequest.comments && (
+                        <p><strong>Submitter Notes:</strong> {selectedRequest.comments}</p>
                       )}
                       <p><strong>Submitted:</strong> {formatDate(selectedRequest.submitted_at)}</p>
                     </div>
