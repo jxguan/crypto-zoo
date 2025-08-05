@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import type { User } from '../types/crypto';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface AuthProps {
   onAuthSuccess: (user: User) => void;
+  initialMode?: 'login' | 'signup';
 }
 
-export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
+export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, initialMode = 'login' }) => {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,11 +17,32 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Watch for URL parameter changes and update the mode accordingly
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const mode = searchParams.get('mode') as 'login' | 'signup' | null;
+    if (mode) {
+      setIsLogin(mode === 'login');
+      // Clear form fields when switching modes
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setFirstName('');
+      setLastName('');
+      setError(null);
+      setSuccess(null);
+    }
+  }, [location.search]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     // Validate password confirmation for sign up
     if (!isLogin && password !== confirmPassword) {
@@ -35,11 +58,18 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
       } else {
         result = await supabaseService.signUp(email, password, firstName, lastName);
       }
-
       if (result.error) {
         setError(result.error.message);
       } else if (result.user) {
-        onAuthSuccess(result.user);
+        // User was created successfully but needs email confirmation
+        if (!isLogin) {
+          setSuccess('Account created successfully! Please check your email to confirm your account before signing in.');
+        } else {
+          onAuthSuccess(result.user);
+        }
+      } else if (!isLogin && !result.error) {
+        // Signup was successful (no user returned because email confirmation is required)
+        setSuccess('Account created successfully! Please check your email to confirm your account before signing in.');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -61,14 +91,8 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
               type="button"
               className="font-medium text-indigo-600 hover:text-indigo-500"
               onClick={() => {
-                setIsLogin(!isLogin);
-                // Clear form fields when switching
-                                 setEmail('');
-                 setPassword('');
-                 setConfirmPassword('');
-                 setFirstName('');
-                 setLastName('');
-                 setError(null);
+                const newMode = isLogin ? 'signup' : 'login';
+                navigate(`/auth?mode=${newMode}`);
               }}
             >
               {isLogin ? 'Sign up' : 'Sign in'}
@@ -175,6 +199,12 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">{error}</div>
+            </div>
+          )}
+
+          {success && (
+            <div className="rounded-md bg-green-50 p-4">
+              <div className="text-sm text-green-700">{success}</div>
             </div>
           )}
 

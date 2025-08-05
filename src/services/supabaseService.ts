@@ -321,18 +321,62 @@ export class SupabaseService {
 
   // User operations
   async getCurrentUser(): Promise<User | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (error) throw error;
-    
-    return data;
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('getCurrentUser: Auth error:', authError);
+        return null;
+      }
+      
+      if (!user) {
+        return null;
+      }
+      
+      // Get user details from database
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('getCurrentUser: Error fetching user from database:', error);
+        return null;
+      }
+      
+      // If user is pending, upgrade them to regular user
+      if (data && data.role === 'pending') {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ role: 'user' })
+          .eq('id', user.id);
+        
+        if (updateError) {
+          console.error('Failed to upgrade pending user:', updateError);
+          return data; // Return the user as-is if upgrade fails
+        }
+        
+        // Get the updated user record
+        const { data: updatedData, error: updatedError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (updatedError) {
+          console.error('Error fetching updated user:', updatedError);
+          return data; // Return the original user if fetch fails
+        }
+        
+        return updatedData;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('getCurrentUser: Unexpected error:', error);
+      return null;
+    }
   }
 
   async signIn(email: string, password: string): Promise<{ user: User | null; error: AuthError | null }> {
@@ -346,8 +390,46 @@ export class SupabaseService {
     }
     
     if (data.user) {
-      const user = await this.getCurrentUser();
-      return { user, error: null };
+      // Get user details from database directly to avoid double calls
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (userError) {
+        console.error('Error fetching user from database:', userError);
+        return { user: null, error: userError };
+      }
+      
+      // If user is pending, upgrade them to regular user
+      if (userData && userData.role === 'pending') {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ role: 'user' })
+          .eq('id', data.user.id);
+        
+        if (updateError) {
+          console.error('Failed to upgrade pending user:', updateError);
+          return { user: null, error: updateError };
+        }
+        
+        // Get the updated user record
+        const { data: updatedUserData, error: updatedUserError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (updatedUserError) {
+          console.error('Error fetching updated user:', updatedUserError);
+          return { user: null, error: updatedUserError };
+        }
+        
+        return { user: updatedUserData, error: null };
+      }
+      
+      return { user: userData, error: null };
     }
 
     return { user: null, error: null };
@@ -358,25 +440,38 @@ export class SupabaseService {
       email,
       password
     });
-
     if (error) return { user: null, error };
     
     if (data.user) {
-      // Create user record in users table
+      // Create pending user record in users table
       const { error: userError } = await supabase
         .from('users')
         .insert({
           id: data.user.id,
           email: data.user.email!,
-          first_name: firstName,
-          last_name: lastName,
-          role: 'user'
+          first_name: firstName || '',
+          last_name: lastName || '',
+          role: 'pending'
         });
 
-      if (userError) return { user: null, error: userError };
+      if (userError) {
+        // Handle specific database errors
+        if (userError.code === '23505') {
+          return { 
+            user: null, 
+            error: { 
+              message: 'An account with this email address already exists. Please try signing in instead.',
+              status: 409,
+              name: 'DuplicateEmailError'
+            } 
+          };
+        }
+        return { user: null, error: userError };
+      }
 
-      const user = await this.getCurrentUser();
-      return { user, error: null };
+      // For email confirmation, we don't return the user immediately
+      // The user needs to confirm their email before they can sign in
+      return { user: null, error: null };
     }
 
     return { user: null, error: null };

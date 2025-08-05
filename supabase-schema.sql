@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'pending')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -83,15 +83,46 @@ ALTER TABLE edit_requests ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can read own data" ON users
   FOR SELECT USING (auth.uid() = id);
 
--- Users can insert their own data (for signup)
+-- Function to check if current user is admin (bypasses RLS)
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM users 
+    WHERE users.id = auth.uid() 
+    AND users.role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Admins can read all users' data
+CREATE POLICY "Admins can read all users" ON users
+  FOR SELECT USING (is_admin());
+
+-- Anyone can insert pending users (for signup)
+CREATE POLICY "Anyone can insert pending users" ON users
+  FOR INSERT WITH CHECK (role = 'pending');
+
+-- Users can insert their own data (for authenticated users)
 CREATE POLICY "Users can insert own data" ON users
   FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Users can update their own data (but not role)
+-- Users can update their own data and change role from pending to user
 CREATE POLICY "Users can update own data" ON users
   FOR UPDATE USING (
     auth.uid() = id
+  ) WITH CHECK (
+    auth.uid() = id AND (
+      role = 'user' OR 
+      role = 'admin' OR 
+      (role = 'pending' AND (SELECT role FROM users WHERE id = auth.uid()) = 'pending')
+    )
   );
+
+-- Admins can update any user's data
+CREATE POLICY "Admins can update any user" ON users
+  FOR UPDATE USING (is_admin())
+  WITH CHECK (is_admin());
 
 -- Anyone can read vertices and edges (public data)
 CREATE POLICY "Anyone can read vertices" ON vertices

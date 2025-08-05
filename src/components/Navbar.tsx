@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, BookOpen, User, LogOut, Settings, Plus } from 'lucide-react';
+import { Search, BookOpen, User, LogOut, Settings, Plus, ChevronDown, Users, FileText } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import type { User as UserType } from '../types/crypto';
 
 interface NavbarProps {
@@ -11,6 +12,22 @@ interface NavbarProps {
 
 export default function Navbar({ searchQuery, setSearchQuery, currentUser, onSignOut }: NavbarProps) {
   const navigate = useNavigate();
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
+  const adminDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target as Node)) {
+        setIsAdminDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,13 +110,43 @@ export default function Navbar({ searchQuery, setSearchQuery, currentUser, onSig
               
               <div className="flex items-center space-x-2">
                 {currentUser.role === 'admin' && (
-                  <Link
-                    to="/admin"
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
-                  >
-                    <Settings className="w-4 h-4" />
-                    <span>Admin</span>
-                  </Link>
+                  <div className="relative" ref={adminDropdownRef}>
+                    <button
+                      onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors rounded-md hover:bg-gray-100"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Admin</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                                         {isAdminDropdownOpen && (
+                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                         <Link
+                           to="/admin"
+                           onClick={() => {
+                             setIsAdminDropdownOpen(false);
+                             window.scrollTo({ top: 0, behavior: 'smooth' });
+                           }}
+                           className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                         >
+                           <FileText className="w-4 h-4" />
+                           <span>Review Edits</span>
+                         </Link>
+                         <Link
+                           to="/manage-users"
+                           onClick={() => {
+                             setIsAdminDropdownOpen(false);
+                             window.scrollTo({ top: 0, behavior: 'smooth' });
+                           }}
+                           className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                         >
+                           <Users className="w-4 h-4" />
+                           <span>Manage Users</span>
+                         </Link>
+                       </div>
+                     )}
+                  </div>
                 )}
                 
                 <button
@@ -114,7 +161,7 @@ export default function Navbar({ searchQuery, setSearchQuery, currentUser, onSig
           ) : (
             <div className="flex items-center space-x-4">
               <Link
-                to="/auth"
+                to="/auth?mode=login"
                 className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
               >
                 <User className="w-4 h-4" />
