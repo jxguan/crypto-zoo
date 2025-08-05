@@ -322,27 +322,14 @@ export class SupabaseService {
   // User operations
   async getCurrentUser(session?: { user?: { id: string; email?: string; created_at?: string } }): Promise<User | null> {
     try {
-      console.log('getCurrentUser: Starting...');
-      
-      /*
-             // Add timeout to prevent hanging
-       const timeoutPromise = new Promise<null>((resolve) => {
-         setTimeout(() => {
-           console.error('getCurrentUser: Timeout reached, returning null');
-           resolve(null);
-         }, 5000); // 3 second timeout
-       });*/
-      
-            const getUserPromise = async () => {  
+      const getUserPromise = async () => {  
         let user = null;
         
         if (session?.user) {
           // Use user from session if provided
           user = session.user;
-          console.log('getCurrentUser: Using user from session:', user.id);
         } else {
           // Fallback to auth.getUser() if no session provided
-          console.log('getCurrentUser: No session provided, calling auth.getUser()...');
           const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
           
           if (authError) {
@@ -351,20 +338,17 @@ export class SupabaseService {
           }
           
           if (!authUser) {
-            console.log('getCurrentUser: No user found');
             return null;
           }
           
           user = authUser;
-          console.log('getCurrentUser: User found from auth:', user.id);
         }
-        // Get user details from database with retry logic
-        console.log('getCurrentUser: About to query users table...');
+        
+        // Get user details from database
         let data = null;
         let error = null;
         
         try {
-          console.log(`getCurrentUser: Database query attempt...`, user.id);
           const result = await supabase
             .from('users')
             .select('*')
@@ -377,13 +361,11 @@ export class SupabaseService {
         } catch (err) {
           console.error('getCurrentUser: Exception during database query:', err);
           error = err;
-          
         }
         
         if (error) {
-          console.error('getCurrentUser: Error fetching user from database after retries:', error);
+          console.error('getCurrentUser: Error fetching user from database:', error);
           // Fallback to basic user object if database query fails
-          console.log('getCurrentUser: Falling back to basic user object...');
           const basicUser: User = {
             id: user.id,
             email: user.email || '',
@@ -395,11 +377,8 @@ export class SupabaseService {
           return basicUser;
         }
         
-        console.log('getCurrentUser: User data fetched:', data?.id, data?.role);
-        
         // If user is pending, upgrade them to regular user
         if (data && data.role === 'pending') {
-          console.log('getCurrentUser: Upgrading pending user...');
           const { error: updateError } = await supabase
             .from('users')
             .update({ role: 'user' })
@@ -422,18 +401,13 @@ export class SupabaseService {
             return data; // Return the original user if fetch fails
           }
           
-          console.log('getCurrentUser: User upgraded successfully:', updatedData?.id);
           return updatedData;
         }
         
-        console.log('getCurrentUser: Returning user:', data?.id);
         return data;
-        
       };
       
-      // Race between the actual operation and the timeout
       const result = await getUserPromise();
-      console.log('getCurrentUser: Result:', result);
       return result;
       
     } catch (error) {

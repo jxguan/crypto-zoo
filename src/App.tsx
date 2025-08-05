@@ -39,18 +39,12 @@ function App() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.id);
-      console.log(session);
-      console.log("currentUser", currentUserRef.current);
-      
       if (event === 'INITIAL_SESSION') {
         if (session?.user) {
           try {
-            console.log("INITIAL_SESSION, getting user");
             const user = await supabaseService.getCurrentUser(session);
             setCurrentUser(user);
             currentUserRef.current = user;
-            console.log("currentUser", currentUserRef.current);
           } catch (error) {
             console.error('Error handling initial session:', error);
             setCurrentUser(null);
@@ -67,9 +61,7 @@ function App() {
         }
       } else if (event === 'SIGNED_IN' && session?.user && isInitialized && currentUserRef.current === null) {
         // Only handle SIGNED_IN if already initialized and no current user
-        console.log("SIGNED_IN branch entered - currentUser is null");
         try {
-          console.log("SIGNED_IN, getting user");
           const user = await supabaseService.getCurrentUser(session);
           setCurrentUser(user);
           currentUserRef.current = user;
@@ -80,14 +72,12 @@ function App() {
         }
       } else if (event === 'SIGNED_IN' && session?.user && isInitialized && currentUserRef.current !== null) {
         // SIGNED_IN when already initialized and user exists - ignore
-        console.log("SIGNED_IN event ignored - currentUser already exists");
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
         currentUserRef.current = null;
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         // Handle token refresh (important for page refreshes)
         try {
-          console.log("TOKEN_REFRESHED, getting user");
           const user = await supabaseService.getCurrentUser(session);
           setCurrentUser(user);
           currentUserRef.current = user;
