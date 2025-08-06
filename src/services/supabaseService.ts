@@ -43,6 +43,18 @@ export class SupabaseService {
     return data;
   }
 
+  async getVerticesByIds(ids: string[]): Promise<Vertex[]> {
+    if (ids.length === 0) return [];
+    
+    const { data, error } = await supabase
+      .from('vertices')
+      .select('*')
+      .in('id', ids);
+    
+    if (error) throw error;
+    return data || [];
+  }
+
   async createVertex(vertex: Omit<Vertex, 'id' | 'created_at' | 'updated_at'>): Promise<Vertex> {
     const { data, error } = await supabase
       .from('vertices')
@@ -320,6 +332,17 @@ export class SupabaseService {
   }
 
   // User operations
+  async getUserById(userId: string): Promise<User | null> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
   async getCurrentUser(session?: { user?: { id: string; email?: string; created_at?: string } }): Promise<User | null> {
     try {
       const getUserPromise = async () => {  

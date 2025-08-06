@@ -77,7 +77,7 @@ export default function Navbar({ searchQuery, setSearchQuery, currentUser, onSig
             <Link to="/tool" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">Tools</Link>
             <Link to="/submit-edit" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors">
               <Plus className="w-4 h-4" />
-              <span>Submit Edit</span>
+              <span>Add</span>
             </Link>
           </div>
 

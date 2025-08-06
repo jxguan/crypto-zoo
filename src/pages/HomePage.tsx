@@ -149,7 +149,15 @@ export default function HomePage() {
                         {vertex.name}
                       </div>
                       <div className="text-sm text-gray-500 font-mono">{vertex.abbreviation}</div>
-                      <div className="text-xs text-gray-400 mt-1">{vertex.tags && vertex.tags.join(', ')}</div>
+                      {vertex.tags && vertex.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {vertex.tags.map((tag, index) => (
+                            <span key={index} className="inline-block px-1 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded capitalize">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <ArrowRight className="w-4 h-4 text-gray-400 group-hover/item:text-primary-500 transition-colors" />
                   </div>
@@ -183,9 +191,15 @@ export default function HomePage() {
                   <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-200 text-primary-700 rounded-full capitalize">
                     {vertex.type}
                   </span>
-                  <span className="inline-block px-2 py-1 ml-2 text-xs font-medium bg-gray-100 text-gray-500 rounded capitalize">
-                    {vertex.tags && vertex.tags.join(', ')}
-                  </span>
+                  {vertex.tags && vertex.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 ml-2">
+                      {vertex.tags.map((tag, index) => (
+                        <span key={index} className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-500 rounded capitalize">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">

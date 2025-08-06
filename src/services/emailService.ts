@@ -54,9 +54,8 @@ export class EmailService {
     email: string,
     editRequest: EditRequest
   ): Promise<void> {
-    const subject = `Edit Request Submitted - Crypto Zoo`;
+    const subject = `[Crypto Zoo] Edit Request Submitted`;
     const html = this.generateConfirmationEmail(editRequest);
-    
     try {
       await this.emailProvider.sendEmail(email, subject, html);
     } catch (error) {
@@ -71,7 +70,7 @@ export class EmailService {
     status: 'approved' | 'rejected',
     reviewerNotes?: string
   ): Promise<void> {
-    const subject = `Edit Request ${status.charAt(0).toUpperCase() + status.slice(1)} - Crypto Zoo`;
+    const subject = `[Crypto Zoo] Edit Request ${status.charAt(0).toUpperCase() + status.slice(1)}`;
     const html = this.generateStatusUpdateEmail(editRequest, status, reviewerNotes);
     
     try {

@@ -95,9 +95,15 @@ export default function SearchPage({ query }: SearchPageProps) {
                       <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-200 text-primary-700 rounded-full capitalize">
                         {vertex.type}
                       </span>
-                      <span className="inline-block px-2 py-1 ml-2 text-xs font-medium bg-gray-100 text-gray-500 rounded capitalize">
-                        {vertex.tags && vertex.tags.join(', ')}
-                      </span>
+                      {vertex.tags && vertex.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 ml-2">
+                          {vertex.tags.map((tag, index) => (
+                            <span key={index} className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-500 rounded capitalize">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
