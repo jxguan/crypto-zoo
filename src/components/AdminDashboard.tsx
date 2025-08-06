@@ -16,6 +16,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
   const [reviewNotes, setReviewNotes] = useState('');
   const [originalData, setOriginalData] = useState<Vertex | Edge | null>(null);
   const [loadingOriginalData, setLoadingOriginalData] = useState(false);
+  const [userDetails, setUserDetails] = useState<Record<string, User>>({});
+  const [loadingUserDetails, setLoadingUserDetails] = useState<Record<string, boolean>>({});
+
+  const loadUserDetails = useCallback(async (userId: string) => {
+    if (userDetails[userId] || loadingUserDetails[userId]) return;
+    
+    try {
+      setLoadingUserDetails(prev => ({ ...prev, [userId]: true }));
+      const user = await supabaseService.getUserById(userId);
+      if (user) {
+        setUserDetails(prev => ({ ...prev, [userId]: user }));
+      }
+    } catch (err) {
+      console.error('Failed to load user details:', err);
+    } finally {
+      setLoadingUserDetails(prev => ({ ...prev, [userId]: false }));
+    }
+  }, [userDetails, loadingUserDetails]);
 
   const loadEditRequests = useCallback(async () => {
     try {
@@ -24,12 +42,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
         ? await supabaseService.getEditRequests()
         : await supabaseService.getEditRequests(statusFilter);
       setEditRequests(requests);
+      
+             // Load user details for logged-in users (submitters and reviewers)
+       requests.forEach(request => {
+         if (request.submitted_by) {
+           loadUserDetails(request.submitted_by);
+         }
+         if (request.reviewed_by) {
+           loadUserDetails(request.reviewed_by);
+         }
+       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load edit requests');
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, loadUserDetails]);
 
   useEffect(() => {
     if (currentUser?.role === 'admin') {
@@ -127,8 +155,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600">Review and manage edit requests</p>
+        <h1 className="text-3xl font-bold text-gray-900">Review Edit Requests</h1>
       </div>
 
       {error && (
@@ -190,13 +217,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                         </p>
                       )}
                       <p className="mt-1 text-sm text-gray-500">
-                        Submitted by: {request.submitted_by} on {formatDate(request.submitted_at)}
+                        Submitted by: {request.submitted_by ? (
+                          // For logged-in users, show Firstname Lastname (email)
+                          (() => {
+                            const user = userDetails[request.submitted_by];
+                            const isLoading = loadingUserDetails[request.submitted_by];
+                            
+                            if (isLoading) {
+                              return <span>Loading user details...</span>;
+                            } else if (user) {
+                              const displayName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                              return (
+                                <span>
+                                  {displayName || 'Unknown User'} ({user.email})
+                                </span>
+                              );
+                            } else {
+                              return <span>User ID: {request.submitted_by}</span>;
+                            }
+                          })()
+                        ) : (
+                          // For anonymous users, show email
+                          request.submitted_email
+                        )} on {formatDate(request.submitted_at)}
                       </p>
-                      {request.reviewed_by && (
-                        <p className="mt-1 text-sm text-gray-500">
-                          Reviewed by: {request.reviewed_by} on {formatDate(request.reviewed_at!)}
-                        </p>
-                      )}
+                                             {request.reviewed_by && (
+                         <p className="mt-1 text-sm text-gray-500">
+                           Reviewed by: {(() => {
+                             const user = userDetails[request.reviewed_by];
+                             const isLoading = loadingUserDetails[request.reviewed_by];
+                             
+                             if (isLoading) {
+                               return <span>Loading user details...</span>;
+                             } else if (user) {
+                               const displayName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                               return (
+                                 <span>
+                                   {displayName || 'Unknown User'} ({user.email})
+                                 </span>
+                               );
+                             } else {
+                               return <span>User ID: {request.reviewed_by}</span>;
+                             }
+                           })()} on {formatDate(request.reviewed_at!)}
+                         </p>
+                       )}
                     </div>
                   </div>
                   <div className="ml-4">

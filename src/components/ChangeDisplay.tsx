@@ -82,7 +82,8 @@ export const ChangeDisplay: React.FC<ChangeDisplayProps> = ({ editRequest, origi
   };
 
   const changes = getFieldChanges();
-  const hasChanges = changes.some(change => change.hasChanged);
+  const changedFields = changes.filter(change => change.hasChanged);
+  const hasChanges = changedFields.length > 0;
 
   if (!hasChanges) {
     return (
@@ -106,16 +107,11 @@ export const ChangeDisplay: React.FC<ChangeDisplayProps> = ({ editRequest, origi
       </div>
       
       <div className="space-y-3">
-        {changes.map((change) => (
+        {changedFields.map((change) => (
           <div key={change.field} className="border rounded-lg overflow-hidden">
             <div className="bg-gray-50 px-3 py-2 border-b">
               <span className="font-medium text-sm text-gray-700">
                 {change.field}
-                {change.hasChanged && (
-                  <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                    Changed
-                  </span>
-                )}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-0">
