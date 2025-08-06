@@ -8,8 +8,8 @@ interface ChangeDisplayProps {
 
 interface FieldChange {
   field: string;
-  oldValue: any;
-  newValue: any;
+  oldValue: unknown;
+  newValue: unknown;
   hasChanged: boolean;
 }
 
@@ -41,8 +41,8 @@ export const ChangeDisplay: React.FC<ChangeDisplayProps> = ({ editRequest, origi
         return; // Skip these fields
       }
 
-      const oldValue = (originalData as any)[field];
-      const newValue = (newData as any)[field];
+      const oldValue = (originalData as unknown as Record<string, unknown>)[field];
+      const newValue = (newData as unknown as Record<string, unknown>)[field];
       
       // Check if the field has changed
       const hasChanged = JSON.stringify(oldValue) !== JSON.stringify(newValue);
@@ -58,7 +58,7 @@ export const ChangeDisplay: React.FC<ChangeDisplayProps> = ({ editRequest, origi
     return changes.sort((a, b) => a.field.localeCompare(b.field));
   };
 
-  const formatValue = (value: any): string => {
+  const formatValue = (value: unknown): string => {
     if (value === null || value === undefined) {
       return 'null';
     }
@@ -68,7 +68,7 @@ export const ChangeDisplay: React.FC<ChangeDisplayProps> = ({ editRequest, origi
     return String(value);
   };
 
-  const renderFieldValue = (value: any, isOld: boolean = false) => {
+  const renderFieldValue = (value: unknown, isOld: boolean = false) => {
     const formattedValue = formatValue(value);
     const baseClasses = "p-2 rounded text-sm font-mono";
     const bgClass = isOld ? "bg-gray-100" : "bg-green-50";
